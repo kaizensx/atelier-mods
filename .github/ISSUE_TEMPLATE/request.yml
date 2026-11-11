@@ -1,0 +1,19 @@
+name: Ask for a mod
+description: An idea for a plugin or theme someone could make.
+title: "[Idea] "
+labels: ["idea"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [Plugin, Theme]
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What it would show or do, and why you would use it.
+    validations:
+      required: true

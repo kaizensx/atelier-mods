@@ -1,0 +1,7 @@
+# Built by scripts/build-index.mjs; published on the dist branch, never on main.
+/out/
+/dist/
+node_modules/
+.DS_Store
+# Never commit a signing key.
+*.key

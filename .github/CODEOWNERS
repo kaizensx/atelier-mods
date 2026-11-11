@@ -1,0 +1,6 @@
+# Tooling and the native tier need a maintainer's review.
+/.github/      @kaizensx
+/scripts/      @kaizensx
+/schema/       @kaizensx
+/catalog.json  @kaizensx
+/native/       @kaizensx

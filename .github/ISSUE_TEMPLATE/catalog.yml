@@ -1,0 +1,12 @@
+name: Catalog problem
+description: The catalog's checks, its index or its documents are wrong.
+title: "[Catalog] "
+labels: ["catalog"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+      description: Links to the pull request or workflow run help.
+    validations:
+      required: true

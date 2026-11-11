@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A problem with Atelier itself
+    url: https://github.com/kaizensx/Atelier/issues/new/choose
+    about: Bugs in the app, the Mods chapter or the plugin API go to the Atelier repository.
+  - name: How to make a mod
+    url: https://github.com/kaizensx/atelier-mods/blob/main/CONTRIBUTING.md
+    about: The submission guide.

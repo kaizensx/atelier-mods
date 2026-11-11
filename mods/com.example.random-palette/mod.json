@@ -1,0 +1,27 @@
+{
+  "id": "com.example.random-palette",
+  "name": "Random Wallpaper Palette",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "plugin",
+  "summary": "A command and a hot-corner action that give the live wallpaper, Dock and widgets a fresh, harmonious palette.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-palette.jpg",
+      "caption": "Each shuffle picks four stops a little further round the colour wheel."
+    }
+  ],
+  "permissions": [
+    "appearance"
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/plugins/random-palette.atelierplugin",
+  "license": "MIT",
+  "tags": [
+    "colour",
+    "wallpaper",
+    "fun"
+  ],
+  "changes": "First release in the catalog."
+}

@@ -1,0 +1,48 @@
+name: Report a mod
+description: A mod is broken, misleading, asks for more than it needs, or is harmful.
+title: "[Report] "
+labels: ["report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a security problem that should not be public (a mod that steals data, for example),
+        use **Report a vulnerability** under this repository's Security tab instead.
+  - type: input
+    id: mod
+    attributes:
+      label: Mod id
+      description: Shown at the bottom of the mod's page in Atelier, like com.example.pomodoro.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      options:
+        - It does not work
+        - It does something its page does not say
+        - It asks for permissions it does not need
+        - It may be harmful
+        - It uses someone else's work without permission
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What you did, what happened, and what you expected.
+    validations:
+      required: true
+  - type: input
+    id: atelier
+    attributes:
+      label: Atelier version
+      description: Settings > Updates shows it.

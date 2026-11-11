@@ -1,0 +1,24 @@
+{
+  "id": "com.example.paper-studio",
+  "name": "Paper Studio",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "theme",
+  "summary": "Warm paper and serif type over a still mesh that follows the hour. No motion at all.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-desktop.jpg",
+      "caption": "Serif clock and paper widgets over a still mesh."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/themes/paper-studio.ateliertheme",
+  "license": "MIT",
+  "tags": [
+    "light",
+    "warm",
+    "still"
+  ],
+  "changes": "First release in the catalog."
+}
