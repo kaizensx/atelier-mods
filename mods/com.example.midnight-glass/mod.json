@@ -1,0 +1,24 @@
+{
+  "id": "com.example.midnight-glass",
+  "name": "Midnight Glass",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "theme",
+  "summary": "Ink-blue Liquid Glass over a slow nebula, with a custom four-stop palette.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-desktop.jpg",
+      "caption": "Glass Dock and widgets over the Nebula live wallpaper."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/themes/midnight-glass.ateliertheme",
+  "license": "MIT",
+  "tags": [
+    "dark",
+    "blue",
+    "glass"
+  ],
+  "changes": "First release in the catalog."
+}

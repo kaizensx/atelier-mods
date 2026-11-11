@@ -1,0 +1,31 @@
+{
+  "id": "com.example.github-notifications",
+  "name": "GitHub Notifications",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "plugin",
+  "summary": "Your unread GitHub notifications as a widget and a Dock badge. Needs a personal access token with the notifications scope.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-board.jpg",
+      "caption": "Unread notifications on the board, with a badge on the Dock tile."
+    }
+  ],
+  "permissions": [
+    "network",
+    "openURL"
+  ],
+  "hosts": [
+    "api.github.com"
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/plugins/github-notifications.atelierplugin",
+  "license": "MIT",
+  "tags": [
+    "github",
+    "developer",
+    "notifications"
+  ],
+  "changes": "First release in the catalog."
+}

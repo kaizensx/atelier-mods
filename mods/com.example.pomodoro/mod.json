@@ -1,0 +1,27 @@
+{
+  "id": "com.example.pomodoro",
+  "name": "Pomodoro",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "plugin",
+  "summary": "A focus timer as a Dock tile, a widget, a command and a hot-corner action.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-board.jpg",
+      "caption": "The Dock tile counts down; the widget shows the ring."
+    }
+  ],
+  "permissions": [
+    "notifications"
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/plugins/pomodoro.atelierplugin",
+  "license": "MIT",
+  "tags": [
+    "focus",
+    "timer",
+    "productivity"
+  ],
+  "changes": "First release in the catalog."
+}

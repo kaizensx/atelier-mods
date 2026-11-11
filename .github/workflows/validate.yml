@@ -1,0 +1,109 @@
+name: Validate mods
+
+# Runs on every pull request. It has no secrets and only reads the repository.
+# The checks themselves (scripts/, schema/, catalog.json) are taken from the base branch, so a
+# pull request cannot change the rules it is judged by.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Check the changed mods
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@v4
+        with:
+          path: pr
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out the rules from the base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch the live index
+        working-directory: pr
+        run: |
+          if git fetch --depth=1 origin dist 2>/dev/null; then
+            git show FETCH_HEAD:index.json > "$RUNNER_TEMP/published.json" || : > "$RUNNER_TEMP/published.json"
+          else
+            : > "$RUNNER_TEMP/published.json"
+          fi
+
+      - name: Find what changed
+        id: changed
+        working-directory: pr
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(git diff --name-only "$BASE"...HEAD)
+          echo "$files"
+          ids=$(echo "$files" | awk -F/ '($1=="mods"||$1=="native") && NF>2 {print $2}' | sort -u | paste -sd, -)
+          removed=$(git diff --name-only --diff-filter=D "$BASE"...HEAD | awk -F/ '($1=="mods"||$1=="native") && $3=="mod.json" {print $2}' | sort -u | paste -sd, -)
+          tooling=$(echo "$files" | grep -vE '^(mods|native)/' || true)
+          echo "ids=$ids" >> "$GITHUB_OUTPUT"
+          echo "removed=$removed" >> "$GITHUB_OUTPUT"
+          {
+            echo "tooling<<END_OF_LIST"
+            echo "$tooling"
+            echo "END_OF_LIST"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Only maintainers change the tooling
+        if: steps.changed.outputs.tooling != ''
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          TOOLING: ${{ steps.changed.outputs.tooling }}
+        run: |
+          if node -e 'const c=require(process.argv[1]); process.exit((c.maintainers||[]).map(m=>m.toLowerCase()).includes(process.argv[2].toLowerCase())?0:1)' "$PWD/base/catalog.json" "$AUTHOR"; then
+            echo "Tooling changed by a maintainer:"; echo "$TOOLING"
+          else
+            echo "::error::This pull request changes files outside mods/ and native/:"
+            echo "$TOOLING"
+            echo "::error::Submit mods only. Changes to scripts, schemas, workflows or catalog.json are made by maintainers."
+            exit 1
+          fi
+
+      - name: Validate
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          IDS: ${{ steps.changed.outputs.ids }}
+          REMOVED: ${{ steps.changed.outputs.removed }}
+        run: |
+          if [ -z "$IDS" ] && [ -z "$REMOVED" ]; then echo "No mods changed."; exit 0; fi
+          node base/scripts/validate.mjs --root pr --pr \
+            --published "$RUNNER_TEMP/published.json" \
+            --author "$AUTHOR" --labels "$LABELS" \
+            --only "${IDS:-none}" --removed "${REMOVED}"
+
+      - name: Native mods wait for a maintainer
+        if: contains(steps.changed.outputs.ids, '') && startsWith(github.event.pull_request.title, '')
+        working-directory: pr
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if git diff --name-only "$BASE"...HEAD | grep -q '^native/'; then
+            case ",$LABELS," in
+              *,native-reviewed,*) echo "Native mod reviewed by a maintainer." ;;
+              *) echo "::error::This pull request touches native/. A maintainer reads the source, then adds the native-reviewed label."; exit 1 ;;
+            esac
+          fi

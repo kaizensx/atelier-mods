@@ -1,0 +1,24 @@
+{
+  "id": "com.example.sunset-neon",
+  "name": "Sunset Neon",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "theme",
+  "summary": "A neon grid under a striped sun. Hot pink edges, gradient widgets, a bold clock.",
+  "screenshots": [
+    {
+      "file": "screenshots/1-desktop.jpg",
+      "caption": "The neon grid with gradient widgets and a bold clock."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/themes/sunset-neon.ateliertheme",
+  "license": "MIT",
+  "tags": [
+    "dark",
+    "pink",
+    "retro"
+  ],
+  "changes": "First release in the catalog."
+}
