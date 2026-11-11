@@ -3,7 +3,7 @@
   "name": "GitHub Notifications",
   "author": "Atelier Examples",
   "github": "kaizensx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "kind": "plugin",
   "summary": "Your unread GitHub notifications as a widget and a Dock badge. Needs a personal access token with the notifications scope.",
   "screenshots": [
@@ -27,5 +27,5 @@
     "developer",
     "notifications"
   ],
-  "changes": "First release in the catalog."
+  "changes": "Asks for the token only the first time it runs; after that, use the Set GitHub Token command."
 }
