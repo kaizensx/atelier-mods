@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-11-11T17:51:14Z",
+  "generated": "2026-11-12T04:24:33Z",
   "catalog": "kaizensx/atelier-mods",
   "featured": [
     "com.example.pomodoro",
@@ -14,7 +14,7 @@
       "author": "Atelier Examples",
       "github": "kaizensx",
       "kind": "plugin",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "summary": "Your unread GitHub notifications as a widget and a Dock badge. Needs a personal access token with the notifications scope.",
       "description": "# GitHub Notifications\n\nUnread notifications from GitHub, on your desktop.\n\n1. Run **Set GitHub Token** from the Command palette.\n2. Paste a classic personal access token with the `notifications` scope. Make one at [github.com/settings/tokens](https://github.com/settings/tokens).\n3. Add a **Plugin** widget to the board and choose *GitHub*.\n\nThe token is kept in the plugin's own storage and sent only to `api.github.com`, the one host it may reach. Clicking the Dock tile opens your notifications in the browser.\n\n> Pull requests waiting for your review are drawn in orange.\n",
       "permissions": [
@@ -33,10 +33,10 @@
         "notifications"
       ],
       "added": "2026-11-11T17:51:14Z",
-      "updated": "2026-11-11T17:51:14Z",
+      "updated": "2026-11-12T04:24:33Z",
       "screenshots": [
         {
-          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.github-notifications/1.0.0/1-board.jpg",
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.github-notifications/1.0.1/1-board.jpg",
           "sha256": "1b650cfe48ceb5e75147301f5f679ab4db7a938b509aeb941fc4502b1dc44f58",
           "size": 169061,
           "width": 1280,
@@ -45,12 +45,22 @@
         }
       ],
       "package": {
-        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.0.zip",
-        "sha256": "b44a5496337b8ca8f9961b1ccc0b4e621252f90a11b0a8d3a9b37f0d9fc2adfc",
-        "size": 1948
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.1.zip",
+        "sha256": "31e1625d6e259e7552f316515b2393492e55d7dcb9a76e1eba823ec06a95457a",
+        "size": 2053
       },
-      "contentHash": "d7cad4e7c55dd63f1f201d91aa303cd76db4bcba140e77bf20cbc7c324f66ccb",
+      "contentHash": "a98d2dce41bcea3fb996f487169cf009d79138c024c76d866b38823c0159b545",
       "versions": [
+        {
+          "version": "1.0.1",
+          "date": "2026-11-12T04:24:33Z",
+          "notes": "Asks for the token only the first time it runs; after that, use the Set GitHub Token command.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.1.zip",
+            "sha256": "31e1625d6e259e7552f316515b2393492e55d7dcb9a76e1eba823ec06a95457a",
+            "size": 2053
+          }
+        },
         {
           "version": "1.0.0",
           "date": "2026-11-11T17:51:14Z",
