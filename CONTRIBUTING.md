@@ -9,6 +9,11 @@ shader packs, layout packs, effect packs and Looks).
 
 ## 1. Make it and try it
 
+New to it? Atelier's guide, [MAKING-MODS.md](https://github.com/kaizensx/Atelier/blob/main/docs/MAKING-MODS.md),
+covers the **Mods › Create** playground and `atelier-mod`, a command-line kit that makes a project
+with editor types, runs your plugin outside Atelier, and writes this folder for you
+(`atelier-mod catalog-entry`).
+
 Install your `.atelierplugin`, `.ateliertheme` or pack in Atelier (drop it on **Mods › Library**) and
 use it for a while. Try a light setup and a dark one.
 
@@ -78,6 +83,11 @@ The full schema is [schema/mod.schema.json](schema/mod.schema.json).
 ```sh
 node scripts/validate.mjs --only io.github.you.focus-ring
 ```
+
+`atelier-mod validate mods/io.github.you.focus-ring` runs the same checks: it carries this
+repository's `scripts/lib.mjs` and `scripts/validate.mjs` byte for byte. When you change either,
+or a schema here, refresh Atelier's copy with `node sdk/sync-catalog.mjs --from <this checkout>`
+in the Atelier repository; its preflight fails while they differ.
 
 ## 5. Open a pull request
 
