@@ -10,7 +10,20 @@
   "properties": {
     "id": { "type": "string", "maxLength": 120, "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*(\\.[A-Za-z0-9][A-Za-z0-9_-]*)+$", "description": "Reverse-DNS id. Must equal the folder name and the package's own id." },
     "name": { "type": "string", "minLength": 1, "maxLength": 60, "description": "Shown on the card. Must equal the package's name." },
-    "author": { "type": "string", "minLength": 1, "maxLength": 80, "description": "Who made it, as shown." },
+    "author": {
+      "anyOf": [
+        { "type": "string", "minLength": 1, "maxLength": 80 },
+        {
+          "type": "object", "required": ["name"], "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "key": { "type": "string", "pattern": "^[A-Za-z0-9+/]{43}=$", "description": "Your Ed25519 public key (base64). With it, package.sig must be your signature over the package." },
+            "url": { "type": "string", "maxLength": 300, "pattern": "^https://", "description": "Your own page, shown on your author page." }
+          }
+        }
+      ],
+      "description": "Who made it, as shown: a name, or { name, key, url }."
+    },
     "github": { "type": "string", "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$", "description": "Your GitHub handle. Only this account (or a maintainer) may update the mod." },
     "version": { "type": "string", "maxLength": 20, "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$", "description": "Semantic version. Must equal the package's version." },
     "kind": { "enum": ["plugin", "theme", "native"], "description": "plugin and theme live in mods/, native in native/." },

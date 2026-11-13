@@ -55,7 +55,7 @@ mods/io.github.you.focus-ring/
 | Key | |
 |---|---|
 | `id`, `name`, `version` | Exactly as in the package's own `manifest.json` or `atelier-theme.json`. |
-| `author` | Shown on the card. |
+| `author` | Shown on the card. A name, or `{ "name", "key", "url" }` to sign your packages and link your page (see *Sign your package*). |
 | `github` | **Your** GitHub handle. Only you (or a maintainer) can update the mod later. |
 | `kind` | `plugin` or `theme` (in `mods/`), `native` (in `native/`). |
 | `summary` | One or two sentences, up to 400 characters. |
@@ -103,12 +103,62 @@ it is in everyone's Mods chapter.
   maintainer.
 * Pull requests from contributors may only touch `mods/` and `native/`.
 
+## Sign your package (recommended)
+
+The catalog signs everything it publishes. You can sign your own packages too, so Atelier knows
+each update really comes from you:
+
+```sh
+node scripts/sign-package.mjs --generate        # once: makes ~/.atelier/author-ed25519.key, prints your public key
+```
+
+Put the public key in `mod.json`, with your name (and, if you like, your own page):
+
+```json
+"author": { "name": "Your Name", "key": "<your public key>", "url": "https://you.dev" }
+```
+
+Then, every time the package changes:
+
+```sh
+node scripts/sign-package.mjs mods/io.github.you.focus-ring     # writes mods/<id>/package.sig
+```
+
+Commit `package.sig` with the pull request. The check verifies it against `author.key` and the
+exact zip the catalog will publish. Atelier shows a signed mod as "Signed by the author and the
+catalog" and checks your signature before installing.
+
+**Keep the private key safe and never commit it.** Your key stays with the mod: a pull request
+that changes or removes it fails unless a maintainer adds the `key-change` label, and everyone who
+has the mod is asked to confirm before Atelier installs an update signed by a different key
+("This mod changed hands"). If you lose your key, open an issue and a maintainer will help.
+
+Mods without a key keep working, signed by the catalog.
+
 ## Updating your mod
 
 Change the package, raise `version` in both the package and `mod.json`, say what changed in
-`changes`, and open a pull request. Atelier offers the update to everyone who has the mod. If the
-update asks for a new permission, it stays switched off on their Mac until they allow it, so only
-ask for what you need.
+`changes`, sign again if you sign, and open a pull request. Atelier offers the update to everyone
+who has the mod. If the update asks for a new permission or a new network host, Atelier shows the
+difference and asks first; Update All never installs it on its own, and the plugin stays off until
+it is allowed. So only ask for what you need.
+
+Every version stays available: people can roll back to the previous one, or install any version
+from your mod's history.
+
+## Installs, likes and discussion
+
+Each version you publish is also a GitHub Release asset of this repository, and Atelier downloads
+from there. GitHub's download count is the install count shown on cards and pages. Nothing else is
+collected: no analytics, no identifiers.
+
+Each mod gets a thread in the **Mods** discussion category. Its 👍 count shows as likes in Atelier
+and on the website, and **Discuss on GitHub** opens it.
+
+## Collections and featured
+
+Maintainers group mods into collections (`collections.json`) and pick the week's featured mods
+(`featured` and `featuredNote` in `catalog.json`). Want yours in one? Say so in your pull request.
 
 ## Rules
 

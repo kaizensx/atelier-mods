@@ -1,0 +1,22 @@
+{
+  "collections": [
+    {
+      "id": "focus",
+      "title": "Stay focused",
+      "description": "A timer on the Dock and the notifications that matter, nothing else.",
+      "mods": ["com.example.pomodoro", "com.example.github-notifications"]
+    },
+    {
+      "id": "night",
+      "title": "After dark",
+      "description": "Themes for late hours.",
+      "mods": ["com.example.midnight-glass", "com.example.sunset-neon"]
+    },
+    {
+      "id": "colour",
+      "title": "Play with colour",
+      "description": "New palettes, made by hand or by chance.",
+      "mods": ["com.example.random-palette", "com.example.paper-studio", "com.example.sunset-neon"]
+    }
+  ]
+}
