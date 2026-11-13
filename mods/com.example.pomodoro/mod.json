@@ -3,7 +3,7 @@
   "name": "Pomodoro",
   "author": "Atelier Examples",
   "github": "kaizensx",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "plugin",
   "summary": "A focus timer as a Dock tile, a widget, a command and a hot-corner action.",
   "screenshots": [
@@ -23,5 +23,5 @@
     "timer",
     "productivity"
   ],
-  "changes": "First release in the catalog."
+  "changes": "Start and Reset buttons in the widget, a chart of the week's sessions, and settings for focus and break lengths."
 }
