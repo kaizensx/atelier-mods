@@ -1,13 +1,174 @@
 {
   "format": 1,
-  "generated": "2026-11-12T04:24:33Z",
+  "generated": "2026-11-13T18:34:44Z",
   "catalog": "kaizensx/atelier-mods",
   "featured": [
     "com.example.pomodoro",
     "com.example.midnight-glass",
     "com.example.random-palette"
   ],
+  "featuredNote": "A focus timer, a dark theme and a palette that changes every day.",
+  "collections": [
+    {
+      "id": "focus",
+      "title": "Stay focused",
+      "description": "A timer on the Dock and the notifications that matter, nothing else.",
+      "mods": [
+        "com.example.pomodoro",
+        "com.example.github-notifications"
+      ]
+    },
+    {
+      "id": "night",
+      "title": "After dark",
+      "description": "Themes for late hours.",
+      "mods": [
+        "com.example.midnight-glass",
+        "com.example.sunset-neon"
+      ]
+    },
+    {
+      "id": "colour",
+      "title": "Play with colour",
+      "description": "New palettes, made by hand or by chance.",
+      "mods": [
+        "com.example.random-palette",
+        "com.example.paper-studio",
+        "com.example.sunset-neon"
+      ]
+    }
+  ],
+  "authors": [
+    {
+      "github": "kaizensx",
+      "name": "Atelier Examples",
+      "mods": [
+        "com.example.aurora-drift",
+        "com.example.dusk-studio",
+        "com.example.github-notifications",
+        "com.example.midnight-glass",
+        "com.example.mono-glyphs",
+        "com.example.paper-studio",
+        "com.example.pomodoro",
+        "com.example.random-palette",
+        "com.example.soft-chimes",
+        "com.example.soft-effects",
+        "com.example.studio-grids",
+        "com.example.sunset-neon"
+      ]
+    }
+  ],
   "mods": [
+    {
+      "id": "com.example.aurora-drift",
+      "name": "Aurora Drift",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "shader",
+      "version": "1.0.0",
+      "summary": "Northern Lights in teal and violet, slower and a little grainy, held at night.",
+      "description": "Atelier's own Northern Lights shader with a teal and violet palette, a slower clock, a little grain and the look of night at every hour.\n\nA shader pack carries no code: it names one of Atelier's shaders and the values its controls take. Wear it from its page or from Live Wallpaper › From shader packs.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/aurora-drift.ateliershader",
+      "license": "MIT",
+      "tags": [
+        "wallpaper",
+        "aurora",
+        "night"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.aurora-drift/1.0.0/1.png",
+          "sha256": "9c6bcecd7000e2529545c8175e1cd2d5a1e9f281ea2d124b9092b2c924788e5d",
+          "size": 384146,
+          "width": 640,
+          "height": 400,
+          "caption": "Aurora Drift drawn by Atelier's live wallpaper engine."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.aurora-drift/1.0.0.zip",
+        "sha256": "b443726565f7ffc1ed6fc1f9ab8ec751196f40f623f05e168f4b176e6a9fd3dc",
+        "size": 579,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.aurora-drift%401.0.0/com.example.aurora-drift-1.0.0.zip"
+      },
+      "contentHash": "0a32e40e591ae1e07c8dfa37378aa7461049f5caf19858ad9111232851af7834",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.aurora-drift/1.0.0.zip",
+            "sha256": "b443726565f7ffc1ed6fc1f9ab8ec751196f40f623f05e168f4b176e6a9fd3dc",
+            "size": 579,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.aurora-drift%401.0.0/com.example.aurora-drift-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
+    },
+    {
+      "id": "com.example.dusk-studio",
+      "name": "Dusk Studio",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "look",
+      "version": "1.0.0",
+      "summary": "A violet theme, a moving dusk sky, a smaller Dock that magnifies, and Mono Glyphs icons when installed.",
+      "description": "One click for a whole setup: a violet glass theme, a dusk sky shader carried inside the Look, a 52 point Dock that magnifies to 92, and the Mono Glyphs icon pack when it is installed.\n\nWearing it saves your setup first. **Revert** in Looks puts all of it back: theme, wallpaper, Dock settings and packs.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/dusk-studio.atelierlook",
+      "license": "MIT",
+      "tags": [
+        "look",
+        "dark",
+        "violet"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.dusk-studio/1.0.0/1.png",
+          "sha256": "942f7150b9255ffde60c11f842e49e13384c2159d04f012cb2bd5797490214cb",
+          "size": 86187,
+          "width": 1360,
+          "height": 554,
+          "caption": "What the Look sets, as its page in Atelier shows it."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.dusk-studio/1.0.0.zip",
+        "sha256": "aa9adddf2d3d9003f879edd6a40b6bdd5c9a86363dc1bc7a39dfc3538ebe38bd",
+        "size": 1846,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.dusk-studio%401.0.0/com.example.dusk-studio-1.0.0.zip"
+      },
+      "contentHash": "d5bc6ffdf415b2817bf5540dbcc64bdf67cda3236d172c82126e96f01e1d3471",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.dusk-studio/1.0.0.zip",
+            "sha256": "aa9adddf2d3d9003f879edd6a40b6bdd5c9a86363dc1bc7a39dfc3538ebe38bd",
+            "size": 1846,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.dusk-studio%401.0.0/com.example.dusk-studio-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
+    },
     {
       "id": "com.example.github-notifications",
       "name": "GitHub Notifications",
@@ -47,7 +208,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.1.zip",
         "sha256": "31e1625d6e259e7552f316515b2393492e55d7dcb9a76e1eba823ec06a95457a",
-        "size": 2053
+        "size": 2053,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.github-notifications%401.0.1/com.example.github-notifications-1.0.1.zip"
       },
       "contentHash": "a98d2dce41bcea3fb996f487169cf009d79138c024c76d866b38823c0159b545",
       "versions": [
@@ -58,7 +220,8 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.1.zip",
             "sha256": "31e1625d6e259e7552f316515b2393492e55d7dcb9a76e1eba823ec06a95457a",
-            "size": 2053
+            "size": 2053,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.github-notifications%401.0.1/com.example.github-notifications-1.0.1.zip"
           }
         },
         {
@@ -68,10 +231,12 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.github-notifications/1.0.0.zip",
             "sha256": "b44a5496337b8ca8f9961b1ccc0b4e621252f90a11b0a8d3a9b37f0d9fc2adfc",
-            "size": 1948
+            "size": 1948,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.github-notifications%401.0.0/com.example.github-notifications-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
     },
     {
       "id": "com.example.midnight-glass",
@@ -107,7 +272,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.midnight-glass/1.0.0.zip",
         "sha256": "9e3f5754df7f44fcc32923361d62879ec1070156672ff244046598fce11d285e",
-        "size": 948
+        "size": 948,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.midnight-glass%401.0.0/com.example.midnight-glass-1.0.0.zip"
       },
       "contentHash": "c274d1ecc7c1dcb29eb4cd1e5cdc5d1a4b44ff598509cded0790368c5146bf33",
       "versions": [
@@ -118,10 +284,67 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.midnight-glass/1.0.0.zip",
             "sha256": "9e3f5754df7f44fcc32923361d62879ec1070156672ff244046598fce11d285e",
-            "size": 948
+            "size": 948,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.midnight-glass%401.0.0/com.example.midnight-glass-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
+    },
+    {
+      "id": "com.example.mono-glyphs",
+      "name": "Mono Glyphs",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "icons",
+      "version": "1.0.0",
+      "summary": "Quiet ink tiles with a white glyph for a few Apple apps, folders, Downloads and the Trash.",
+      "description": "Twelve icons drawn for the Atelier Dock, Orbit, the Launcher and Command: Safari, Finder, Mail, Notes, TextEdit, Terminal, System Settings, the App Store, folders, Downloads and the Trash, empty and full.\n\nChoose **Use** on its page. Click any icon in the preview to keep that app's own icon. Nothing outside Atelier changes: real apps and Apple's Dock keep their icons.\n\nA small example of an icon pack. The format is in Atelier's docs/PACKS.md.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/mono-glyphs.ateliericons",
+      "license": "MIT",
+      "tags": [
+        "icons",
+        "dark",
+        "minimal"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.mono-glyphs/1.0.0/1.png",
+          "sha256": "106850fb98beda730389ac3e489ce257857906583cc26e39478bc459ecf6d312",
+          "size": 95147,
+          "width": 1360,
+          "height": 584,
+          "caption": "The pack's twelve icons, as its page in Atelier shows them."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.mono-glyphs/1.0.0.zip",
+        "sha256": "6649ae905f2eba0158b8d8f2823751963f6d0bf0747fb9b3db3b9cb6ef2cb32e",
+        "size": 543800,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.mono-glyphs%401.0.0/com.example.mono-glyphs-1.0.0.zip"
+      },
+      "contentHash": "fb1a8eef34face7b70634ed1d0f2d9b832979185d8fe5f75483198a360caed52",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.mono-glyphs/1.0.0.zip",
+            "sha256": "6649ae905f2eba0158b8d8f2823751963f6d0bf0747fb9b3db3b9cb6ef2cb32e",
+            "size": 543800,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.mono-glyphs%401.0.0/com.example.mono-glyphs-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
     },
     {
       "id": "com.example.paper-studio",
@@ -157,7 +380,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.paper-studio/1.0.0.zip",
         "sha256": "a5179cd183a84a6257980d3a9cc89d0e4e177c6d6d86dd3ee393bffd6987afae",
-        "size": 822
+        "size": 822,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.paper-studio%401.0.0/com.example.paper-studio-1.0.0.zip"
       },
       "contentHash": "98360141fb1b4f648f224bd8e4c0708dcd4070fa84dab7f2566b486a41efe74e",
       "versions": [
@@ -168,10 +392,12 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.paper-studio/1.0.0.zip",
             "sha256": "a5179cd183a84a6257980d3a9cc89d0e4e177c6d6d86dd3ee393bffd6987afae",
-            "size": 822
+            "size": 822,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.paper-studio%401.0.0/com.example.paper-studio-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
     },
     {
       "id": "com.example.pomodoro",
@@ -209,7 +435,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.pomodoro/1.0.0.zip",
         "sha256": "5c47108723144044c100a80a3bf786e5802e4256e477bacc2ef40465c827e207",
-        "size": 1779
+        "size": 1779,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.pomodoro%401.0.0/com.example.pomodoro-1.0.0.zip"
       },
       "contentHash": "55c6382ad99d06d6c336465cf5e7a4ebdc41b5852c33af7fdeeb1e7923997327",
       "versions": [
@@ -220,10 +447,12 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.pomodoro/1.0.0.zip",
             "sha256": "5c47108723144044c100a80a3bf786e5802e4256e477bacc2ef40465c827e207",
-            "size": 1779
+            "size": 1779,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.pomodoro%401.0.0/com.example.pomodoro-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
     },
     {
       "id": "com.example.random-palette",
@@ -261,7 +490,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.random-palette/1.0.0.zip",
         "sha256": "793467ed2e63efafe403f04a59df0d3f87c57b66f46c87126a1917fa9a1ceacb",
-        "size": 1371
+        "size": 1371,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.random-palette%401.0.0/com.example.random-palette-1.0.0.zip"
       },
       "contentHash": "d74868df044d0e29d772ec65a24a344259b7d98dd41652fcd4655d05c658c57a",
       "versions": [
@@ -272,10 +502,177 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.random-palette/1.0.0.zip",
             "sha256": "793467ed2e63efafe403f04a59df0d3f87c57b66f46c87126a1917fa9a1ceacb",
-            "size": 1371
+            "size": 1371,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.random-palette%401.0.0/com.example.random-palette-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
+    },
+    {
+      "id": "com.example.soft-chimes",
+      "name": "Soft Chimes",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "sounds",
+      "version": "1.0.0",
+      "summary": "Small bell tones for the Dock, timers and themes, and soft synthesised keys for Typing Sounds.",
+      "description": "Six bell tones made from a few sine partials: an app opening from the Dock, a drop, the Trash, a minimise, a timer or focus session ending, and a theme being applied. Three soft key sounds, a space and a return for Typing Sounds.\n\nChoose it in Dock › Sounds or in Typing Sounds; turn on **Play the pack's key sounds** to type with it. Built-in stays the default.\n\nA small example of a sound pack. Every sound was synthesised for it.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/soft-chimes.ateliersounds",
+      "license": "MIT",
+      "tags": [
+        "sounds",
+        "calm",
+        "typing"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.soft-chimes/1.0.0/1.png",
+          "sha256": "a49162ce24d2192077ca830f19c7f556e98f23e20bde21ebce38a11e34126c87",
+          "size": 165502,
+          "width": 1360,
+          "height": 1040,
+          "caption": "Every slot with a play button, and the typing key classes."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.soft-chimes/1.0.0.zip",
+        "sha256": "8990548f91835552cd4ab285cb64aeab7421a9a3038a47182bb9dcc13ba8b926",
+        "size": 382855,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.soft-chimes%401.0.0/com.example.soft-chimes-1.0.0.zip"
+      },
+      "contentHash": "8ea347b718dc58cd615303c276195a01a1296a16be553c10a1ea849076470e6b",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.soft-chimes/1.0.0.zip",
+            "sha256": "8990548f91835552cd4ab285cb64aeab7421a9a3038a47182bb9dcc13ba8b926",
+            "size": 382855,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.soft-chimes%401.0.0/com.example.soft-chimes-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
+    },
+    {
+      "id": "com.example.soft-effects",
+      "name": "Soft Effects",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "effects",
+      "version": "1.0.0",
+      "summary": "Two calm minimise effects for the Atelier Dock: a misty fade and a gentle swirl.",
+      "description": "**Mist** shrinks the window into its tile while it blurs and fades. **Swirl** pours it down the Genie funnel with a quarter turn and a soft wave.\n\nBoth are numbers on top of Atelier's own effects: a curve, keyframes for opacity, scale, blur and brightness, a twist and a wave. Choose one in Dock › Window Minimise Effect › From effect packs.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/soft-effects.ateliereffects",
+      "license": "MIT",
+      "tags": [
+        "dock",
+        "minimise",
+        "animation"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.soft-effects/1.0.0/1.png",
+          "sha256": "85ec56ca8ec8c81364aaf2d221468eb7004417f3eec0632eb3cf33b1469b3c90",
+          "size": 93760,
+          "width": 1300,
+          "height": 200,
+          "caption": "Swirl, from the window to its tile."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.soft-effects/1.0.0.zip",
+        "sha256": "d89c71f889f45c325238e0229abeb82b445b1358f7a4d1bcb73c62785ba31c22",
+        "size": 656,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.soft-effects%401.0.0/com.example.soft-effects-1.0.0.zip"
+      },
+      "contentHash": "661004c2e16d97b59a7fdec1f1a2f7606cd046eb3113af86e550fa12cdb05323",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.soft-effects/1.0.0.zip",
+            "sha256": "d89c71f889f45c325238e0229abeb82b445b1358f7a4d1bcb73c62785ba31c22",
+            "size": 656,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.soft-effects%401.0.0/com.example.soft-effects-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
+    },
+    {
+      "id": "com.example.studio-grids",
+      "name": "Studio Grids",
+      "author": "Atelier Examples",
+      "github": "kaizensx",
+      "kind": "layouts",
+      "version": "1.0.0",
+      "summary": "Four snap layouts for wide screens: golden split, centre stage, three rows and a 2 by 4 grid.",
+      "description": "Four layouts for Window Engine: **Golden Split**, **Centre Stage**, **Three Rows** and **Eight Grid**.\n\n**Add to Layouts** puts them with your custom layouts; hold Shift while dragging a window to drop it in a zone.\n",
+      "permissions": [],
+      "hosts": [],
+      "minAtelier": "1.0.0",
+      "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/studio-grids.atelierlayouts",
+      "license": "MIT",
+      "tags": [
+        "windows",
+        "layouts",
+        "ultrawide"
+      ],
+      "added": "2026-11-13T18:34:44Z",
+      "updated": "2026-11-13T18:34:44Z",
+      "screenshots": [
+        {
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.studio-grids/1.0.0/1.png",
+          "sha256": "6797c9bed1796565d6dfcff31947be85461efcff0f6655872c4f2252fbcb4c26",
+          "size": 81024,
+          "width": 1360,
+          "height": 848,
+          "caption": "The four layouts as zone diagrams."
+        }
+      ],
+      "package": {
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.studio-grids/1.0.0.zip",
+        "sha256": "29dd59f17c1ec65f8cfd83c592e3806b1ba508cf3b8d3051e87f14a67b995e44",
+        "size": 685,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.studio-grids%401.0.0/com.example.studio-grids-1.0.0.zip"
+      },
+      "contentHash": "42a38f7f3e731c08b02827448530a33148f546bab4e0213cec90b869ede41566",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13T18:34:44Z",
+          "notes": "First release in the catalog.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.studio-grids/1.0.0.zip",
+            "sha256": "29dd59f17c1ec65f8cfd83c592e3806b1ba508cf3b8d3051e87f14a67b995e44",
+            "size": 685,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.studio-grids%401.0.0/com.example.studio-grids-1.0.0.zip"
+          },
+          "permissions": [],
+          "hosts": []
+        }
+      ],
+      "downloads": 0
     },
     {
       "id": "com.example.sunset-neon",
@@ -311,7 +708,8 @@
       "package": {
         "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.sunset-neon/1.0.0.zip",
         "sha256": "04c35199bd6ebaf3e32f7cc805c6dee90d6fdb89783ef556943df25fa651aafa",
-        "size": 931
+        "size": 931,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.sunset-neon%401.0.0/com.example.sunset-neon-1.0.0.zip"
       },
       "contentHash": "22240fd1535c4d1c5e193f3731dee10bf179106d6250a0931b1d8dcefa4f9e7e",
       "versions": [
@@ -322,10 +720,12 @@
           "package": {
             "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.sunset-neon/1.0.0.zip",
             "sha256": "04c35199bd6ebaf3e32f7cc805c6dee90d6fdb89783ef556943df25fa651aafa",
-            "size": 931
+            "size": 931,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.sunset-neon%401.0.0/com.example.sunset-neon-1.0.0.zip"
           }
         }
-      ]
+      ],
+      "downloads": 0
     }
   ]
 }
