@@ -36,7 +36,21 @@ against the checksum in the signed index, before anything is installed.
   its own JavaScript engine, no file access, and each permission asked for when you switch it on.
   An update that asks for more is switched off until you allow it.
 * **Versions stay.** Published packages on `dist` are never rewritten, so every version in a mod's
-  history stays downloadable with the same checksum.
+  history stays downloadable with the same checksum. Atelier can roll back to the previous version
+  or install any listed version.
+* **Author keys.** An author may sign their own packages (`author.key` in `mod.json`,
+  `package.sig` from `scripts/sign-package.mjs`). The index carries `authorKey` and
+  `packageSignature` per version; Atelier checks both signatures, and asks before installing an
+  update signed by a different key. A key change needs the maintainers' `key-change` label.
+* **Permission changes are shown.** An update that asks for new permissions or hosts is never
+  installed by Update All; Atelier shows the difference and asks.
+* **Installs without tracking.** Each package version is also a GitHub Release asset (tag
+  `<id>@<version>`). Atelier downloads from there (the `dist` copy is the fallback), and the publish
+  workflow sums the assets' download counts into `downloads`. Nothing else is counted.
+* **Discussion and likes.** Each mod has a thread in the *Mods* discussion category; its URL is
+  `discussion` and its 👍 count `likes`. With discussions off, the workflow skips this.
+* **Collections and authors.** `collections.json` (maintainers) becomes `collections` in the
+  index; `authors` is built from the mods' `github`, name and `author.url`.
 
 ## Share a mod
 
@@ -60,8 +74,9 @@ mods/com.example.pomodoro/
 | `mods/` | Plugins (`.atelierplugin`) and themes (`.ateliertheme`) |
 | `native/` | Native mods (`.ateliermod`). See [native/README.md](native/README.md) |
 | `schema/` | `mod.schema.json`, and a copy of Atelier's `atelier-theme.schema.json` |
-| `scripts/` | `validate.mjs`, `build-index.mjs`, `sign-index.mjs` (Node 20, no dependencies) |
-| `catalog.json` | The featured list, the maintainers, the public key, the published URL |
+| `scripts/` | `validate.mjs`, `build-index.mjs`, `community.mjs`, `sign-index.mjs`, `sign-package.mjs`, tests in `scripts/test/` (Node 20, no dependencies) |
+| `catalog.json` | The featured list and `featuredNote`, the maintainers, the public key, the published URL |
+| `collections.json` | Collections: shelves of mods chosen by the maintainers |
 
 The six seed mods (three plugins, three themes) are Atelier's own examples.
 
@@ -69,6 +84,7 @@ The six seed mods (three plugins, three themes) are Atelier's own examples.
 
 ```sh
 node scripts/validate.mjs                                  # check every mod
+node --test scripts/test/                                  # test the tooling
 node scripts/build-index.mjs --out /tmp/catalog --base-url http://127.0.0.1:8765
 node scripts/sign-index.mjs /tmp/catalog/index.json --key-file <key>   # maintainers only
 python3 -m http.server 8765 --bind 127.0.0.1 --directory /tmp/catalog
@@ -88,13 +104,18 @@ One-time setup of this repository:
 2. **Branch protection** on `main`: require a pull request, one approving review, review from
    Code Owners, and the *Check the changed mods* status check.
 3. **Labels:** `native-reviewed` (only after reading a native mod's source),
-   `maintainer-approved` (lets a maintainer approve a change to someone else's mod), `report`,
+   `maintainer-approved` (lets a maintainer approve a change to someone else's mod), `key-change`
+   (accepts a new author key for a published mod, after checking with its owner), `report`,
    `idea`, `catalog`.
-4. **Actions:** Settings > Actions > General: "Require approval for all outside collaborators"
+4. **Discussions:** Settings > General > Features > Discussions on, and a category named `Mods`
+   (open discussion format). Without it, the publish workflow
+   skips threads and likes.
+5. **Actions:** Settings > Actions > General: "Require approval for all outside collaborators"
    for workflows from forks.
-5. Merge once to `main` (or run *Publish catalog* by hand) to create the `dist` branch.
+6. Merge once to `main` (or run *Publish catalog* by hand) to create the `dist` branch.
 
-Featuring a mod: add its id to `featured` in `catalog.json`.
+Featuring a mod: add its id to `featured` in `catalog.json`, and a line about the week in `featuredNote`.
+A collection: add it to `collections.json` (id, title, description, mod ids).
 Taking a mod down: delete its folder in a pull request; its old packages stay on `dist` but
 leave the index, so Atelier no longer offers them. Installed copies stay until their owners
 remove them.

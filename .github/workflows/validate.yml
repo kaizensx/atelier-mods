@@ -81,6 +81,8 @@ jobs:
             exit 1
           fi
 
+      # Labels a maintainer sets: native-reviewed (native mods), maintainer-approved (someone
+      # else's mod), key-change (a published mod's author key changes; Atelier asks every owner).
       - name: Validate
         env:
           AUTHOR: ${{ github.event.pull_request.user.login }}
