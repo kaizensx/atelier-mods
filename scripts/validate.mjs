@@ -18,6 +18,7 @@ import {
   KINDS, LIMITS, PERMISSIONS, ALLOWED, isReverseDNS, parseVersion, compareVersions, walk, contentHash,
   binaryKind, isMachO, imageSize, scanPermissions, checkSchema, zipFolder, listMods, findPackage, readJSON,
 } from "./lib.mjs";
+import { validatePack } from "./packs.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) => {
   if (a.startsWith("--")) acc.push([a.slice(2), all[i + 1] && !all[i + 1].startsWith("--") ? all[i + 1] : true]);
@@ -67,7 +68,7 @@ export function validateMod({ tier, id: folderName, dir }) {
   if (!parseVersion(mod.version)) err(`"${mod.version}" is not a version like 1.0.0.`);
   const kind = mod.kind;
   if (!KINDS[kind]) return;
-  if (KINDS[kind].folder !== tier) err(kind === "native" ? "Native mods live in native/<id>/." : "Plugins and themes live in mods/<id>/.");
+  if (KINDS[kind].folder !== tier) err(kind === "native" ? "Native mods live in native/<id>/." : "Plugins, themes and packs live in mods/<id>/.");
 
   const descriptionFile = join(dir, "description.md");
   const description = existsSync(descriptionFile) ? readFileSync(descriptionFile, "utf8") : mod.description ?? "";
@@ -143,6 +144,16 @@ export function validateMod({ tier, id: folderName, dir }) {
       if (typeof path === "string" && path.includes(".") && /\.[a-z0-9]{3,4}$/i.test(path) && !files.some((f) => f.path === path)) {
         if (path.includes("/") || path === theme.preview) err(`atelier-theme.json names ${path}, which is not in the package.`, pkgRel);
       }
+    }
+  }
+  if (KINDS[kind].pack) {
+    // Data-only packs: every file read by its own bytes, then the same rules as the app.
+    const { errors: problems, header } = validatePack(kind, pkg, files, themeSchema);
+    for (const problem of problems) err(problem, pkgRel);
+    if (header) {
+      same("id", header.id, KINDS[kind].ext.slice(1) + " manifest");
+      same("name", header.name, KINDS[kind].ext.slice(1) + " manifest");
+      same("version", header.version, KINDS[kind].ext.slice(1) + " manifest");
     }
   }
   if (kind === "native") {

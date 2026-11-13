@@ -1,0 +1,24 @@
+{
+  "id": "com.example.mono-glyphs",
+  "name": "Mono Glyphs",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "icons",
+  "summary": "Quiet ink tiles with a white glyph for a few Apple apps, folders, Downloads and the Trash.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "The pack's twelve icons, as its page in Atelier shows them."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/mono-glyphs.ateliericons",
+  "license": "MIT",
+  "tags": [
+    "icons",
+    "dark",
+    "minimal"
+  ],
+  "changes": "First release in the catalog."
+}

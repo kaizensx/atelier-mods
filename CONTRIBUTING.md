@@ -1,13 +1,15 @@
 # Sharing a mod
 
-Thank you for making something for Atelier. This page is everything you need to get a plugin or
-a theme into the catalog. The formats themselves are documented in Atelier's repository:
-[PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md) and
-[THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md).
+Thank you for making something for Atelier. This page is everything you need to get a plugin, a
+theme or a pack into the catalog. The formats themselves are documented in Atelier's repository:
+[PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md),
+[THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md) and
+[PACKS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PACKS.md) (icon packs, sound packs,
+shader packs, layout packs, effect packs and Looks).
 
 ## 1. Make it and try it
 
-Install your `.atelierplugin` or `.ateliertheme` in Atelier (drop it on **Themes & Plugins**) and
+Install your `.atelierplugin`, `.ateliertheme` or pack in Atelier (drop it on **Mods › Library**) and
 use it for a while. Try a light setup and a dark one.
 
 ## 2. Pick an id
@@ -54,10 +56,10 @@ mods/io.github.you.focus-ring/
 
 | Key | |
 |---|---|
-| `id`, `name`, `version` | Exactly as in the package's own `manifest.json` or `atelier-theme.json`. |
+| `id`, `name`, `version` | Exactly as in the package's own `manifest.json`, `atelier-theme.json` or pack manifest. |
 | `author` | Shown on the card. |
 | `github` | **Your** GitHub handle. Only you (or a maintainer) can update the mod later. |
-| `kind` | `plugin` or `theme` (in `mods/`), `native` (in `native/`). |
+| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look` (all in `mods/`); `native` (in `native/`). |
 | `summary` | One or two sentences, up to 400 characters. |
 | `description` | Markdown for the mod page. Or write `description.md` beside `mod.json`. |
 | `screenshots` | 1 to 6 PNG or JPEG files in `screenshots/`, at least 640 px wide, up to 1.5 MB each. 16:10 fills the card. |
@@ -94,7 +96,14 @@ it is in everyone's Mods chapter.
   `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt` and images; a theme may also hold
   `.heic`, `.tiff` and sounds. No hidden files, no symbolic links.
 * **Sizes:** a plugin zips to at most 2 MB (its script at most 512 KB), a theme to 40 MB, a
-  native mod to 20 MB.
+  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, shaders 1 MB, layouts and
+  effects 256 KB.
+* **Packs are data only** and are checked by the same rules as Atelier (`scripts/packs.mjs`): every
+  file by its own bytes (a `.wav` must really be a WAV), icons PNG, HEIC or ICNS of at most 1 MB
+  and at least 256 px (600 at most), sounds CAF, M4A or WAV of at most 1 MB and 2 s (typing sounds
+  1 s), shaders built from Atelier's own shaders with values in range, layout zones inside the
+  screen and never thinner than 0.05, effects of 0.15 to 1.2 s whose keyframes start on the window,
+  and a Look's theme and packs inside it, each checked too.
 * Themes are checked against Atelier's theme schema.
 * At least one screenshot, present and readable.
 * **Updates:** the version goes up. The same version may never change its contents; a published
