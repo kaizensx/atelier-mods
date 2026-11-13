@@ -15,7 +15,7 @@ import { readFileSync, existsSync, statSync, realpathSync } from "node:fs";
 import { join, extname, basename, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
-  KINDS, LIMITS, PERMISSIONS, ALLOWED, isReverseDNS, parseVersion, compareVersions, walk, contentHash,
+  KINDS, LIMITS, PERMISSIONS, PERMISSION_CALLS, ALLOWED, isReverseDNS, parseVersion, compareVersions, walk, contentHash,
   binaryKind, isMachO, imageSize, scanPermissions, checkSchema, zipFolder, listMods, findPackage, readJSON,
 } from "./lib.mjs";
 
@@ -123,7 +123,7 @@ export function validateMod({ tier, id: folderName, dir }) {
       const code = readFileSync(f.full, "utf8");
       if (/\beval\s*\(|\bnew\s+Function\s*\(/.test(code)) warn(`${f.path}: eval or new Function makes review harder. Reviewers will look closely.`, pkgRel);
     }
-    for (const p of used) if (!asked.has(p)) err(`The script calls atelier.${{ network: "http", notifications: "notify", openURL: "openURL", appearance: "theme" }[p]} but does not ask for "${p}".`, pkgRel);
+    for (const p of used) if (!asked.has(p)) err(`The script calls ${PERMISSION_CALLS[p]} but does not ask for "${p}".`, pkgRel);
     for (const p of asked) if (!used.has(p)) {
       (dynamic ? warn : err)(`It asks for "${p}" but the script never uses it. Ask only for what it needs.`, pkgRel);
     }

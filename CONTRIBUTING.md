@@ -87,11 +87,12 @@ it is in everyone's Mods chapter.
 
 * `mod.json` follows the schema, and its id, name and version match the package.
 * **Permissions tell the truth.** The script is scanned for `atelier.http`, `atelier.notify`,
-  `atelier.openURL` and `atelier.theme`. Using one without asking for its permission fails; asking
+  `atelier.openURL`, `atelier.theme`, `atelier.menuBarItem`, `atelier.liveActivity`, `atelier.scenes`
+  and `atelier.panel`. Using one without asking for its permission fails; asking
   for one the script never uses fails too. Reaching `atelier` indirectly (`atelier["http"]`, or
   passing `atelier` around) cannot be followed by the scan and gets a closer human look.
 * **No binaries** outside the native tier: no executables, libraries, archives, WebAssembly or
-  `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt` and images; a theme may also hold
+  `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt`, images, `.css` and `.woff2` (for its panels); a theme may also hold
   `.heic`, `.tiff` and sounds. No hidden files, no symbolic links.
 * **Sizes:** a plugin zips to at most 2 MB (its script at most 512 KB), a theme to 40 MB, a
   native mod to 20 MB.

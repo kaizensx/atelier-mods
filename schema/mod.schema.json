@@ -33,8 +33,8 @@
       "description": "PNG or JPEG files in screenshots/, at least 640 px wide, at most 1.5 MB each. 16:10 looks best."
     },
     "permissions": {
-      "type": "array", "maxItems": 4,
-      "items": { "enum": ["network", "notifications", "openURL", "appearance"] },
+      "type": "array", "maxItems": 8,
+      "items": { "enum": ["network", "notifications", "openURL", "appearance", "menuBar", "liveActivities", "scenes", "panels"] },
       "description": "Plugins only: exactly the permissions in the plugin's manifest.json."
     },
     "hosts": {

@@ -25,11 +25,11 @@ export const LIMITS = {
   pluginScript: 512 * 1024,
 };
 
-export const PERMISSIONS = ["network", "notifications", "openURL", "appearance"];
+export const PERMISSIONS = ["network", "notifications", "openURL", "appearance", "menuBar", "liveActivities", "scenes", "panels"];
 
 // Files a package may hold, by kind. Anything else is refused: no executables, no archives.
 export const ALLOWED = {
-  plugin: [".js", ".json", ".md", ".txt", ".png", ".jpg", ".jpeg"],
+  plugin: [".js", ".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".css", ".svg", ".webp", ".woff2"],
   theme: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".tiff", ".aiff", ".aif", ".wav", ".caf", ".m4a", ".mp3"],
   native: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".dylib"],
 };
@@ -167,7 +167,18 @@ const SCAN = [
   ["notifications", /\batelier\s*\.\s*notify\b/],
   ["openURL", /\batelier\s*\.\s*openURL\b/],
   ["appearance", /\batelier\s*\.\s*theme\b/],
+  // Hooks into Atelier.
+  ["menuBar", /\batelier\s*\.\s*menuBarItem\b/],
+  ["liveActivities", /\batelier\s*\.\s*liveActivity\b/],
+  ["scenes", /\batelier\s*\.\s*scenes\b/],
+  ["panels", /\batelier\s*\.\s*panel\b/],
 ];
+
+// The call each permission is for, for error messages.
+export const PERMISSION_CALLS = {
+  network: "atelier.http", notifications: "atelier.notify", openURL: "atelier.openURL", appearance: "atelier.theme",
+  menuBar: "atelier.menuBarItem", liveActivities: "atelier.liveActivity", scenes: "atelier.scenes", panels: "atelier.panel",
+};
 
 export function scanPermissions(src) {
   const code = stripComments(src);
