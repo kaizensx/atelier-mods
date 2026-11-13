@@ -1,13 +1,20 @@
 # Sharing a mod
 
-Thank you for making something for Atelier. This page is everything you need to get a plugin or
-a theme into the catalog. The formats themselves are documented in Atelier's repository:
-[PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md) and
-[THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md).
+Thank you for making something for Atelier. This page is everything you need to get a plugin, a
+theme or a pack into the catalog. The formats themselves are documented in Atelier's repository:
+[PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md),
+[THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md) and
+[PACKS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PACKS.md) (icon packs, sound packs,
+shader packs, layout packs, effect packs and Looks).
 
 ## 1. Make it and try it
 
-Install your `.atelierplugin` or `.ateliertheme` in Atelier (drop it on **Themes & Plugins**) and
+New to it? Atelier's guide, [MAKING-MODS.md](https://github.com/kaizensx/Atelier/blob/main/docs/MAKING-MODS.md),
+covers the **Mods › Create** playground and `atelier-mod`, a command-line kit that makes a project
+with editor types, runs your plugin outside Atelier, and writes this folder for you
+(`atelier-mod catalog-entry`).
+
+Install your `.atelierplugin`, `.ateliertheme` or pack in Atelier (drop it on **Mods › Library**) and
 use it for a while. Try a light setup and a dark one.
 
 ## 2. Pick an id
@@ -54,10 +61,10 @@ mods/io.github.you.focus-ring/
 
 | Key | |
 |---|---|
-| `id`, `name`, `version` | Exactly as in the package's own `manifest.json` or `atelier-theme.json`. |
-| `author` | Shown on the card. |
+| `id`, `name`, `version` | Exactly as in the package's own `manifest.json`, `atelier-theme.json` or pack manifest. |
+| `author` | Shown on the card. A name, or `{ "name", "key", "url" }` to sign your packages and link your page (see *Sign your package*). |
 | `github` | **Your** GitHub handle. Only you (or a maintainer) can update the mod later. |
-| `kind` | `plugin` or `theme` (in `mods/`), `native` (in `native/`). |
+| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look` (all in `mods/`); `native` (in `native/`). |
 | `summary` | One or two sentences, up to 400 characters. |
 | `description` | Markdown for the mod page. Or write `description.md` beside `mod.json`. |
 | `screenshots` | 1 to 6 PNG or JPEG files in `screenshots/`, at least 640 px wide, up to 1.5 MB each. 16:10 fills the card. |
@@ -77,6 +84,11 @@ The full schema is [schema/mod.schema.json](schema/mod.schema.json).
 node scripts/validate.mjs --only io.github.you.focus-ring
 ```
 
+`atelier-mod validate mods/io.github.you.focus-ring` runs the same checks: it carries this
+repository's `scripts/lib.mjs` and `scripts/validate.mjs` byte for byte. When you change either,
+or a schema here, refresh Atelier's copy with `node sdk/sync-catalog.mjs --from <this checkout>`
+in the Atelier repository; its preflight fails while they differ.
+
 ## 5. Open a pull request
 
 One mod per pull request. The **Validate mods** check runs on it and lists anything to fix.
@@ -87,14 +99,22 @@ it is in everyone's Mods chapter.
 
 * `mod.json` follows the schema, and its id, name and version match the package.
 * **Permissions tell the truth.** The script is scanned for `atelier.http`, `atelier.notify`,
-  `atelier.openURL` and `atelier.theme`. Using one without asking for its permission fails; asking
+  `atelier.openURL`, `atelier.theme`, `atelier.menuBarItem`, `atelier.liveActivity`, `atelier.scenes`
+  and `atelier.panel`. Using one without asking for its permission fails; asking
   for one the script never uses fails too. Reaching `atelier` indirectly (`atelier["http"]`, or
   passing `atelier` around) cannot be followed by the scan and gets a closer human look.
 * **No binaries** outside the native tier: no executables, libraries, archives, WebAssembly or
-  `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt` and images; a theme may also hold
+  `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt`, images, `.css` and `.woff2` (for its panels); a theme may also hold
   `.heic`, `.tiff` and sounds. No hidden files, no symbolic links.
 * **Sizes:** a plugin zips to at most 2 MB (its script at most 512 KB), a theme to 40 MB, a
-  native mod to 20 MB.
+  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, shaders 1 MB, layouts and
+  effects 256 KB.
+* **Packs are data only** and are checked by the same rules as Atelier (`scripts/packs.mjs`): every
+  file by its own bytes (a `.wav` must really be a WAV), icons PNG, HEIC or ICNS of at most 1 MB
+  and at least 256 px (600 at most), sounds CAF, M4A or WAV of at most 1 MB and 2 s (typing sounds
+  1 s), shaders built from Atelier's own shaders with values in range, layout zones inside the
+  screen and never thinner than 0.05, effects of 0.15 to 1.2 s whose keyframes start on the window,
+  and a Look's theme and packs inside it, each checked too.
 * Themes are checked against Atelier's theme schema.
 * At least one screenshot, present and readable.
 * **Updates:** the version goes up. The same version may never change its contents; a published
@@ -103,12 +123,62 @@ it is in everyone's Mods chapter.
   maintainer.
 * Pull requests from contributors may only touch `mods/` and `native/`.
 
+## Sign your package (recommended)
+
+The catalog signs everything it publishes. You can sign your own packages too, so Atelier knows
+each update really comes from you:
+
+```sh
+node scripts/sign-package.mjs --generate        # once: makes ~/.atelier/author-ed25519.key, prints your public key
+```
+
+Put the public key in `mod.json`, with your name (and, if you like, your own page):
+
+```json
+"author": { "name": "Your Name", "key": "<your public key>", "url": "https://you.dev" }
+```
+
+Then, every time the package changes:
+
+```sh
+node scripts/sign-package.mjs mods/io.github.you.focus-ring     # writes mods/<id>/package.sig
+```
+
+Commit `package.sig` with the pull request. The check verifies it against `author.key` and the
+exact zip the catalog will publish. Atelier shows a signed mod as "Signed by the author and the
+catalog" and checks your signature before installing.
+
+**Keep the private key safe and never commit it.** Your key stays with the mod: a pull request
+that changes or removes it fails unless a maintainer adds the `key-change` label, and everyone who
+has the mod is asked to confirm before Atelier installs an update signed by a different key
+("This mod changed hands"). If you lose your key, open an issue and a maintainer will help.
+
+Mods without a key keep working, signed by the catalog.
+
 ## Updating your mod
 
 Change the package, raise `version` in both the package and `mod.json`, say what changed in
-`changes`, and open a pull request. Atelier offers the update to everyone who has the mod. If the
-update asks for a new permission, it stays switched off on their Mac until they allow it, so only
-ask for what you need.
+`changes`, sign again if you sign, and open a pull request. Atelier offers the update to everyone
+who has the mod. If the update asks for a new permission or a new network host, Atelier shows the
+difference and asks first; Update All never installs it on its own, and the plugin stays off until
+it is allowed. So only ask for what you need.
+
+Every version stays available: people can roll back to the previous one, or install any version
+from your mod's history.
+
+## Installs, likes and discussion
+
+Each version you publish is also a GitHub Release asset of this repository, and Atelier downloads
+from there. GitHub's download count is the install count shown on cards and pages. Nothing else is
+collected: no analytics, no identifiers.
+
+Each mod gets a thread in the **Mods** discussion category. Its 👍 count shows as likes in Atelier
+and on the website, and **Discuss on GitHub** opens it.
+
+## Collections and featured
+
+Maintainers group mods into collections (`collections.json`) and pick the week's featured mods
+(`featured` and `featuredNote` in `catalog.json`). Want yours in one? Say so in your pull request.
 
 ## Rules
 

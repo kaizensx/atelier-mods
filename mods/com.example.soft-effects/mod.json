@@ -1,0 +1,24 @@
+{
+  "id": "com.example.soft-effects",
+  "name": "Soft Effects",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "effects",
+  "summary": "Two calm minimise effects for the Atelier Dock: a misty fade and a gentle swirl.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "Swirl, from the window to its tile."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/soft-effects.ateliereffects",
+  "license": "MIT",
+  "tags": [
+    "dock",
+    "minimise",
+    "animation"
+  ],
+  "changes": "First release in the catalog."
+}

@@ -11,9 +11,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Once a day, so install counts and likes stay fresh without a merge.
+  schedule:
+    - cron: "17 4 * * *"
 
+# contents: the dist branch and the release assets (one release per mod version, tag
+# <id>@<version>, so GitHub counts downloads). discussions: one thread per mod, read for likes.
 permissions:
   contents: write
+  discussions: write
 
 concurrency:
   group: publish
@@ -44,6 +50,16 @@ jobs:
 
       - name: Build the index
         run: node scripts/build-index.mjs --out out
+
+      - name: Test the catalog tooling
+        run: node --test scripts/test/
+
+      # Release assets (install counts) and discussions (likes). Never fails the publish: when
+      # GitHub cannot answer, or discussions are off, the values from the last index stay.
+      - name: Add releases, installs and discussions
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/community.mjs out/index.json --releases --discussions || echo "::warning::Community data skipped."
 
       - name: Sign the index
         env:

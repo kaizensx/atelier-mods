@@ -1,5 +1,5 @@
 name: Ask for a mod
-description: An idea for a plugin or theme someone could make.
+description: An idea for a plugin, theme or pack someone could make.
 title: "[Idea] "
 labels: ["idea"]
 body:
@@ -7,7 +7,7 @@ body:
     id: kind
     attributes:
       label: Kind
-      options: [Plugin, Theme]
+      options: [Plugin, Theme, Icon Pack, Sound Pack, Shader, Layouts, Effects, Look]
     validations:
       required: true
   - type: textarea

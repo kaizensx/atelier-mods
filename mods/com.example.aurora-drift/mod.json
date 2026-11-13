@@ -1,0 +1,24 @@
+{
+  "id": "com.example.aurora-drift",
+  "name": "Aurora Drift",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "shader",
+  "summary": "Northern Lights in teal and violet, slower and a little grainy, held at night.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "Aurora Drift drawn by Atelier's live wallpaper engine."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/aurora-drift.ateliershader",
+  "license": "MIT",
+  "tags": [
+    "wallpaper",
+    "aurora",
+    "night"
+  ],
+  "changes": "First release in the catalog."
+}

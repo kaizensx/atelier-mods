@@ -1,0 +1,24 @@
+{
+  "id": "com.example.dusk-studio",
+  "name": "Dusk Studio",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "look",
+  "summary": "A violet theme, a moving dusk sky, a smaller Dock that magnifies, and Mono Glyphs icons when installed.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "What the Look sets, as its page in Atelier shows it."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/dusk-studio.atelierlook",
+  "license": "MIT",
+  "tags": [
+    "look",
+    "dark",
+    "violet"
+  ],
+  "changes": "First release in the catalog."
+}

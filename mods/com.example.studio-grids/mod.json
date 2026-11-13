@@ -1,0 +1,24 @@
+{
+  "id": "com.example.studio-grids",
+  "name": "Studio Grids",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "layouts",
+  "summary": "Four snap layouts for wide screens: golden split, centre stage, three rows and a 2 by 4 grid.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "The four layouts as zone diagrams."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/studio-grids.atelierlayouts",
+  "license": "MIT",
+  "tags": [
+    "windows",
+    "layouts",
+    "ultrawide"
+  ],
+  "changes": "First release in the catalog."
+}

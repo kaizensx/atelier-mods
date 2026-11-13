@@ -9,12 +9,17 @@
 // --base-url defaults to catalog.json's baseURL. Point it at http://127.0.0.1:<port> to serve
 // a local test catalog with `python3 -m http.server`.
 //
-// Sign the result afterwards with scripts/sign-index.mjs.
+// Then scripts/community.mjs adds what GitHub knows (release assets, install counts, discussion
+// threads and likes), and scripts/sign-index.mjs signs the result.
+//
+// What a mod already had in the published index (its install count, likes, discussion, release
+// asset links) is carried over, so a run where GitHub cannot be reached loses nothing.
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { join, basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sha256, compareVersions, readJSON } from "./lib.mjs";
+import { isReverseDNS } from "./lib.mjs";
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? argv[i + 1] : fallback; };
@@ -29,7 +34,7 @@ const previous = existsSync(previousPath) ? readJSON(previousPath) : null;
 
 // validate.mjs reads its options from the command line: hand it the same root and the live index.
 process.argv = [process.argv[0], fileURLToPath(import.meta.url), "--root", root, ...(previous ? ["--published", previousPath] : [])];
-const { validateAll, counts } = await import("./validate.mjs");
+const { validateAll, counts, readCollections } = await import("./validate.mjs");
 const results = validateAll();
 if (counts().errors) {
   console.error(`\nNot publishing: ${counts().errors} error(s).`);
@@ -41,7 +46,7 @@ const write = (path, data) => { mkdirSync(dirname(join(out, path)), { recursive:
 
 const mods = [];
 for (const r of results) {
-  const { mod, zip, hash, description, shots } = r;
+  const { mod, zip, hash, description, shots, author: who, signature } = r;
   const zipPath = `packages/${mod.id}/${mod.version}.zip`;
   const existing = join(out, zipPath);
   if (existsSync(existing)) {
@@ -52,7 +57,11 @@ for (const r of results) {
   } else {
     write(zipPath, zip);
   }
-  const pkg = { url: url(zipPath), sha256: sha256(zip), size: zip.length };
+  const before = previous?.mods?.find((m) => m.id === mod.id);
+  const already = before?.versions?.find((v) => v.version === mod.version);
+  const pkg = { url: url(zipPath), sha256: sha256(zip), size: zip.length, ...(already?.package?.release ? { release: already.package.release } : {}) };
+  // The author's key and signature for this version; an unsigned mod has neither.
+  const signed = who.key && signature ? { authorKey: who.key, packageSignature: signature } : {};
 
   const screenshots = shots.map((s) => {
     const path = `screenshots/${mod.id}/${mod.version}/${basename(s.file)}`;
@@ -60,16 +69,17 @@ for (const r of results) {
     return { url: url(path), sha256: sha256(s.buf), size: s.buf.length, width: s.width, height: s.height, ...(s.caption ? { caption: s.caption } : {}) };
   });
 
-  const before = previous?.mods?.find((m) => m.id === mod.id);
   const versions = (before?.versions ?? []).filter((v) => v.version !== mod.version);
-  const already = before?.versions?.find((v) => v.version === mod.version);
-  versions.push(already ?? { version: mod.version, date: now, ...(mod.changes ? { notes: mod.changes } : {}), package: pkg });
+  versions.push(already ?? {
+    version: mod.version, date: now, ...(mod.changes ? { notes: mod.changes } : {}), package: pkg, ...signed,
+    permissions: mod.permissions ?? [], hosts: mod.hosts ?? [],
+  });
   versions.sort((a, b) => compareVersions(b.version, a.version));
 
   mods.push({
     id: mod.id,
     name: mod.name,
-    author: mod.author,
+    author: who.name,
     github: mod.github,
     kind: mod.kind,
     version: mod.version,
@@ -87,15 +97,39 @@ for (const r of results) {
     package: pkg,
     contentHash: hash,
     versions,
+    ...signed,
+    ...(who.url ? { authorURL: who.url } : {}),
+    // Filled in by community.mjs; carried over when it cannot reach GitHub.
+    ...(Number.isInteger(before?.downloads) ? { downloads: before.downloads } : {}),
+    ...(Number.isInteger(before?.likes) ? { likes: before.likes } : {}),
+    ...(before?.discussion ? { discussion: before.discussion } : {}),
   });
 }
 mods.sort((a, b) => a.id.localeCompare(b.id));
+
+// Authors, from their mod.json files: one entry per GitHub handle.
+const authors = new Map();
+for (const r of results) {
+  const handle = r.mod.github, key = handle?.toLowerCase();
+  if (!key) continue;
+  const a = authors.get(key) ?? { github: handle, name: r.author.name || handle, mods: [] };
+  if (r.author.url && !a.url) a.url = r.author.url;
+  a.mods.push(r.mod.id);
+  authors.set(key, a);
+}
+const known = new Set(mods.map((m) => m.id));
+const collections = readCollections()
+  .map((c) => ({ id: c.id, title: c.title, ...(c.description ? { description: c.description } : {}), mods: (c.mods ?? []).filter((id) => known.has(id) && isReverseDNS(id)) }))
+  .filter((c) => c.mods.length);
 
 const index = {
   format: 1,
   generated: now,
   catalog: config.catalog,
   featured: (config.featured ?? []).filter((id) => mods.some((m) => m.id === id)),
+  ...(config.featuredNote ? { featuredNote: config.featuredNote } : {}),
+  collections,
+  authors: [...authors.values()].sort((a, b) => a.github.localeCompare(b.github)),
   mods,
 };
 write("index.json", JSON.stringify(index, null, 2) + "\n");
