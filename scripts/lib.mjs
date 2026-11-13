@@ -12,6 +12,13 @@ export const KINDS = {
   plugin: { ext: ".atelierplugin", maxZip: 2 * 1024 * 1024, folder: "mods" },
   theme: { ext: ".ateliertheme", maxZip: 40 * 1024 * 1024, folder: "mods" },
   native: { ext: ".ateliermod", maxZip: 20 * 1024 * 1024, folder: "native" },
+  // Data-only packs (scripts/packs.mjs has their rules). Sizes mirror ModPackKind in the app.
+  icons: { ext: ".ateliericons", maxZip: 60 * 1024 * 1024, folder: "mods", pack: true },
+  sounds: { ext: ".ateliersounds", maxZip: 20 * 1024 * 1024, folder: "mods", pack: true },
+  shader: { ext: ".ateliershader", maxZip: 1024 * 1024, folder: "mods", pack: true },
+  layouts: { ext: ".atelierlayouts", maxZip: 256 * 1024, folder: "mods", pack: true },
+  effects: { ext: ".ateliereffects", maxZip: 256 * 1024, folder: "mods", pack: true },
+  look: { ext: ".atelierlook", maxZip: 80 * 1024 * 1024, folder: "mods", pack: true },
 };
 
 export const LIMITS = {
@@ -32,6 +39,12 @@ export const ALLOWED = {
   plugin: [".js", ".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".css", ".svg", ".webp", ".woff2"],
   theme: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".tiff", ".aiff", ".aif", ".wav", ".caf", ".m4a", ".mp3"],
   native: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".dylib"],
+  icons: [".json", ".md", ".txt", ".png", ".heic", ".heif", ".icns"],
+  sounds: [".json", ".md", ".txt", ".wav", ".caf", ".m4a"],
+  shader: [".json", ".md", ".txt"],
+  layouts: [".json", ".md", ".txt"],
+  effects: [".json", ".md", ".txt"],
+  look: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif", ".icns", ".wav", ".caf", ".m4a", ".aiff", ".aif", ".mp3", ".tiff"],
 };
 
 export const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");

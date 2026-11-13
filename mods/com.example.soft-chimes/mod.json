@@ -1,0 +1,24 @@
+{
+  "id": "com.example.soft-chimes",
+  "name": "Soft Chimes",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "sounds",
+  "summary": "Small bell tones for the Dock, timers and themes, and soft synthesised keys for Typing Sounds.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "Every slot with a play button, and the typing key classes."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/soft-chimes.ateliersounds",
+  "license": "MIT",
+  "tags": [
+    "sounds",
+    "calm",
+    "typing"
+  ],
+  "changes": "First release in the catalog."
+}

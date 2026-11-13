@@ -1,7 +1,8 @@
 # Atelier Mods
 
-The community catalog for [Atelier](https://github.com/kaizensx/Atelier): plugins and themes
-anyone can share, and, in a separate tier, native mods for Macs with the Dock Bridge.
+The community catalog for [Atelier](https://github.com/kaizensx/Atelier): plugins, themes and
+data-only packs (icons, sounds, shaders, snap layouts, minimise effects and Looks) anyone can
+share, and, in a separate tier, native mods for Macs with the Dock Bridge.
 
 Atelier's **Mods** chapter reads this repository. Browse, install, update and remove from there;
 nothing here needs to be downloaded by hand.
@@ -9,7 +10,7 @@ nothing here needs to be downloaded by hand.
 ## How it works
 
 ```
-mods/<id>/            plugins and themes            ┐
+mods/<id>/            plugins, themes and packs     ┐
 native/<id>/          native mods (reviewed tier)   ├─ main: what people submit
 catalog.json          featured list, maintainers    ┘
         │  pull request → "Validate mods" checks it → a maintainer reviews → merge
