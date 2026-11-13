@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-11-13T18:34:44Z",
+  "generated": "2026-11-13T18:48:33Z",
   "catalog": "kaizensx/atelier-mods",
   "featured": [
     "com.example.pomodoro",
@@ -405,7 +405,7 @@
       "author": "Atelier Examples",
       "github": "kaizensx",
       "kind": "plugin",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "summary": "A focus timer as a Dock tile, a widget, a command and a hot-corner action.",
       "description": "# Pomodoro\n\nTwenty-five minutes of focus, five of rest. Click the Dock tile to start or pause.\n\n- **Dock tile** with the time left, a progress ring and a badge for finished sessions.\n- **Widget** for the board, with the same ring.\n- **Command**: *Start or Pause Pomodoro* in the Command palette.\n- **Hot corner**: put *Pomodoro* on any corner in Hot Corners.\n\nA notification tells you when a session ends. That is the only permission it asks for.\n\nIt is also the reference plugin: every kind of registration in one short script. Read `main.js` to see how each one works.\n",
       "permissions": [
@@ -421,10 +421,10 @@
         "productivity"
       ],
       "added": "2026-11-11T17:51:14Z",
-      "updated": "2026-11-11T17:51:14Z",
+      "updated": "2026-11-13T18:48:33Z",
       "screenshots": [
         {
-          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.pomodoro/1.0.0/1-board.jpg",
+          "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/screenshots/com.example.pomodoro/1.1.0/1-board.jpg",
           "sha256": "f5ea17dff8888a85236b1fe97b4259cc0f3b296eb773a4aa7976ed3a43abb568",
           "size": 165899,
           "width": 1280,
@@ -433,13 +433,28 @@
         }
       ],
       "package": {
-        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.pomodoro/1.0.0.zip",
-        "sha256": "5c47108723144044c100a80a3bf786e5802e4256e477bacc2ef40465c827e207",
-        "size": 1779,
-        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.pomodoro%401.0.0/com.example.pomodoro-1.0.0.zip"
+        "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.pomodoro/1.1.0.zip",
+        "sha256": "2d02791e2a821185b26381f25d962e67a0a8aa8574a8e67e5aee053daa3d1499",
+        "size": 3017,
+        "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.pomodoro%401.1.0/com.example.pomodoro-1.1.0.zip"
       },
-      "contentHash": "55c6382ad99d06d6c336465cf5e7a4ebdc41b5852c33af7fdeeb1e7923997327",
+      "contentHash": "f279810bf792b078ccb61917af5069605b94ce942657d49ccb6c1307aaf2c370",
       "versions": [
+        {
+          "version": "1.1.0",
+          "date": "2026-11-13T18:48:33Z",
+          "notes": "Start and Reset buttons in the widget, a chart of the week's sessions, and settings for focus and break lengths.",
+          "package": {
+            "url": "https://raw.githubusercontent.com/kaizensx/atelier-mods/dist/packages/com.example.pomodoro/1.1.0.zip",
+            "sha256": "2d02791e2a821185b26381f25d962e67a0a8aa8574a8e67e5aee053daa3d1499",
+            "size": 3017,
+            "release": "https://github.com/kaizensx/atelier-mods/releases/download/com.example.pomodoro%401.1.0/com.example.pomodoro-1.1.0.zip"
+          },
+          "permissions": [
+            "notifications"
+          ],
+          "hosts": []
+        },
         {
           "version": "1.0.0",
           "date": "2026-11-11T17:51:14Z",
