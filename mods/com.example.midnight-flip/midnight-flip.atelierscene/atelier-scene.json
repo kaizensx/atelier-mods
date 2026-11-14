@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "id": "com.example.midnight-flip",
+  "name": "Midnight Flip",
+  "version": "1.0.0",
+  "author": "Atelier Examples",
+  "description": "A deep blue starfield with a big flip clock, the weather below it and your next three events.",
+  "background": {
+    "kind": "shader",
+    "shader": "starfield",
+    "palette": ["#02030A", "#0A1230", "#23366E", "#B8D0FF"],
+    "speed": 0.5
+  },
+  "layers": [
+    { "kind": "clock", "style": "flip", "position": "center", "size": 0.3, "date": true, "font": "rounded" },
+    { "kind": "weather", "position": "bottomLeading", "size": 0.14, "units": "metric" },
+    { "kind": "calendar", "position": "bottomTrailing", "size": 0.24, "count": 3 }
+  ],
+  "accent": "#B8D0FF",
+  "dim": 0.1,
+  "burnInShift": true,
+  "fadeIn": 1.5
+}

@@ -5,7 +5,7 @@ theme or a pack into the catalog. The formats themselves are documented in Ateli
 [PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md),
 [THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md) and
 [PACKS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PACKS.md) (icon packs, sound packs,
-shader packs, layout packs, effect packs and Looks).
+shader packs, layout packs, effect packs and Looks), and for screen saver scenes [SCREENSAVER.md](https://github.com/kaizensx/Atelier/blob/main/docs/SCREENSAVER.md).
 
 ## 1. Make it and try it
 
@@ -64,7 +64,7 @@ mods/io.github.you.focus-ring/
 | `id`, `name`, `version` | Exactly as in the package's own `manifest.json`, `atelier-theme.json` or pack manifest. |
 | `author` | Shown on the card. A name, or `{ "name", "key", "url" }` to sign your packages and link your page (see *Sign your package*). |
 | `github` | **Your** GitHub handle. Only you (or a maintainer) can update the mod later. |
-| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look` (all in `mods/`); `native` (in `native/`). |
+| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look`, `scene` (all in `mods/`); `native` (in `native/`). |
 | `summary` | One or two sentences, up to 400 characters. |
 | `description` | Markdown for the mod page. Or write `description.md` beside `mod.json`. |
 | `screenshots` | 1 to 6 PNG or JPEG files in `screenshots/`, at least 640 px wide, up to 1.5 MB each. 16:10 fills the card. |
@@ -107,7 +107,7 @@ it is in everyone's Mods chapter.
   `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt`, images, `.css` and `.woff2` (for its panels); a theme may also hold
   `.heic`, `.tiff` and sounds. No hidden files, no symbolic links.
 * **Sizes:** a plugin zips to at most 2 MB (its script at most 512 KB), a theme to 40 MB, a
-  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, shaders 1 MB, layouts and
+  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, scenes 40 MB, shaders 1 MB, layouts and
   effects 256 KB.
 * **Packs are data only** and are checked by the same rules as Atelier (`scripts/packs.mjs`): every
   file by its own bytes (a `.wav` must really be a WAV), icons PNG, HEIC or ICNS of at most 1 MB

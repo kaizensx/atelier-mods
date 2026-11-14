@@ -1,0 +1,24 @@
+{
+  "id": "com.example.midnight-flip",
+  "name": "Midnight Flip",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "scene",
+  "summary": "A screen saver scene: a deep blue starfield, a big flip clock, the weather and your next events.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "Midnight Flip, sketched by Atelier's scene preview."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/blob/main/docs/SCREENSAVER.md",
+  "license": "MIT",
+  "tags": [
+    "screen-saver",
+    "clock",
+    "night"
+  ],
+  "changes": "First release in the catalog."
+}
