@@ -1,7 +1,7 @@
 {
   "id": "com.example.pomodoro",
   "name": "Pomodoro",
-  "author": "Atelier Examples",
+  "author": "Atelier",
   "github": "kaizensx",
   "version": "1.1.0",
   "kind": "plugin",

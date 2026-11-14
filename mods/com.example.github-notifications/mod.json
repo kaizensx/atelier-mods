@@ -1,7 +1,7 @@
 {
   "id": "com.example.github-notifications",
   "name": "GitHub Notifications",
-  "author": "Atelier Examples",
+  "author": "Atelier",
   "github": "kaizensx",
   "version": "1.0.1",
   "kind": "plugin",
