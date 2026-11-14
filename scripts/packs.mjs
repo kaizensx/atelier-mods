@@ -1,5 +1,6 @@
-// Data-only packs: icon packs, sound packs, shader packs, layout packs, effect packs and Looks.
-// The same rules as Sources/DockCore/ModPacks.swift in the Atelier app (docs/PACKS.md there).
+// Data-only packs: icon packs, sound packs, shader packs, layout packs, effect packs, Looks and
+// screen saver scenes. The same rules as Sources/DockCore/ModPacks.swift and
+// Sources/DockCore/ScreenSaverScene.swift in the Atelier app (docs/PACKS.md, docs/SCREENSAVER.md there).
 // Change both together. Nothing in a pack runs; every file is checked by its own bytes.
 
 import { readFileSync } from "node:fs";
@@ -13,6 +14,7 @@ export const PACKS = {
   layouts: { ext: ".atelierlayouts", manifest: "atelier-layouts.json", maxZip: 256 * 1024 },
   effects: { ext: ".ateliereffects", manifest: "atelier-effects.json", maxZip: 256 * 1024 },
   look: { ext: ".atelierlook", manifest: "atelier-look.json", maxZip: 80 * 1024 * 1024 },
+  scene: { ext: ".atelierscene", manifest: "atelier-scene.json", maxZip: 40 * 1024 * 1024 },
 };
 
 export const PACK_LIMITS = {
@@ -20,6 +22,20 @@ export const PACK_LIMITS = {
   uiSeconds: 2, typingSeconds: 1, typingVariants: 8, layouts: 24, zones: 12, zoneSide: 0.05,
   effects: 12, keyframes: 16, wallpaperBytes: 20 * 1024 * 1024, wallpaperPixels: 512,
 };
+
+// Screen saver scenes: the same limits as ScreenSaverSceneLimits in the app.
+export const SCENE_LIMITS = {
+  layers: 12, fileBytes: 20 * 1024 * 1024, bundleBytes: 60 * 1024 * 1024, text: 280, colors: 6, widgets: 8,
+  calendar: [1, 8], photos: 60, dim: [0, 0.8], fadeIn: [0, 10], size: [0.05, 1], interval: [4, 600], speed: [0.2, 2.5], imagePixels: 512,
+};
+export const SCENE_POSITIONS = ["center", "top", "bottom", "leading", "trailing", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"];
+export const SCENE_LAYERS = {
+  clock: ["style", "seconds", "date", "font"], weather: ["units"], nowPlaying: [], calendar: ["count"],
+  widgets: ["ids"], quote: ["source"], text: ["text"], vitals: [],
+};
+export const CLOCK_STYLES = ["digital", "flip", "analog", "word", "minimal"];
+export const SCENE_FONTS = ["system", "rounded", "serif", "mono"];
+const BUILT_IN_SCENE = "net.dasantos.atelier.scene.";
 
 export const SHADER_BASES = ["liquidLight", "nebula", "auroraSilk", "topography", "glassRain", "silkWaves", "gradientMesh",
   "starfield", "retroHorizon", "oceanCaustics", "northernLights", "lavaLamp", "inkInWater", "fireflies", "liquidChrome"];
@@ -173,7 +189,8 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
   if (!root || typeof root !== "object" || Array.isArray(root)) { err(`${spec.manifest} is not a JSON object.`); return null; }
 
   const allowed = { icons: ["icons"], sounds: ["sounds", "typing"], shader: ["base", "palette", "speed", "intensity", "grain", "scale", "dim", "cycle", "pointer"],
-    layouts: ["layouts"], effects: ["effects"], look: ["theme", "wallpaper", "dock", "iconPack", "soundPack"] }[kind];
+    layouts: ["layouts"], effects: ["effects"], look: ["theme", "wallpaper", "dock", "iconPack", "soundPack"],
+    scene: ["background", "layers", "accent", "dim", "burnInShift", "fadeIn"] }[kind];
   for (const key of Object.keys(root)) if (!HEADER.includes(key) && !allowed.includes(key) && !key.startsWith("x-")) err(`${spec.manifest}: unknown key "${key}".`);
   if (root.format !== 1) err(`${spec.manifest} needs "format": 1.`);
   if (!isReverseDNS(root.id)) err(`${spec.manifest} needs a reverse-DNS "id".`);
@@ -364,7 +381,138 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
     ref(root.iconPack, "icons", "iconPack");
     ref(root.soundPack, "sounds", "soundPack");
   }
+  if (kind === "scene") checkScene(root, facts, at, err, file, range);
   return { id: root.id, name: root.name, version: root.version };
+}
+
+// --- Screen saver scenes -----------------------------------------------------------------
+
+const COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const isWidgetID = (id) => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(id);
+
+function checkScene(root, facts, at, err, file, range) {
+  const L = SCENE_LIMITS;
+  if (typeof root.id === "string" && root.id.startsWith(BUILT_IN_SCENE)) err(`Ids that start with ${BUILT_IN_SCENE} are Atelier's own scenes. Use your own reverse-DNS id.`);
+  let total = 0;
+  for (const [path, f] of facts) {
+    total += f.size;
+    if (f.size > L.fileBytes) err(`${path} is larger than 20 MB.`);
+    const ext = path.slice(path.lastIndexOf(".") + 1).toLowerCase(), base = path.split("/").at(-1);
+    if (!(f.format === "json" || ["png", "jpeg", "heic"].includes(f.format) || ["README", "LICENSE"].includes(base) || ["md", "txt"].includes(ext))) {
+      err(`${path} is not a PNG, JPEG or HEIC picture. A scene holds pictures, JSON and text notes only.`);
+    }
+  }
+  if (total > L.bundleBytes) err(`The scene is ${Math.floor(total / 1048576)} MB; the limit is 60 MB.`);
+  const unknown = (obj, allowed, label) => { for (const key of Object.keys(obj)) if (!allowed.includes(key) && !key.startsWith("x-")) err(`${label}: unknown key "${key}".`); };
+  const flag = (v, label) => { if (v !== undefined && typeof v !== "boolean") err(`${label} must be true or false.`); };
+  const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+  const photoFolder = (path) => {
+    if (!isSafePath(path)) return err(`background.folder: "${path}" is not a folder inside the scene.`);
+    const photos = [...facts].filter(([p, f]) => p.startsWith(at(path) + "/") && ["png", "jpeg", "heic"].includes(f.format));
+    if (!photos.length) return err(`background.folder: ${path} holds no PNG, JPEG or HEIC photos.`);
+    if (photos.length > L.photos) return err(`background.folder: ${path} holds ${photos.length} photos; the limit is 60.`);
+    for (const [p, f] of photos) {
+      const ext = p.slice(p.lastIndexOf(".")).toLowerCase();
+      if (!(EXTENSIONS[f.format] ?? []).includes(ext)) return err(`${p} is not really a ${ext} file.`);
+    }
+  };
+
+  const bg = root.background;
+  if (bg === undefined) err("atelier-scene.json needs a \"background\".");
+  else if (!isObj(bg)) err("\"background\" must be an object with a \"kind\".");
+  else if (!["shader", "photos", "color", "image"].includes(bg.kind)) err("background.kind must be shader, photos, color or image.");
+  else if (bg.kind === "shader") {
+    unknown(bg, ["kind", "shader", "palette", "speed"], "background");
+    if (["wallpaperRain", "wallpaperRipple", "wallpaperDepth"].includes(bg.shader)) err(`background.shader: ${bg.shader} draws over your own wallpaper, so only scenes you make yourself may use it.`);
+    else if (!SHADER_BASES.includes(bg.shader) && !isReverseDNS(bg.shader)) err(`background.shader must be one of ${SHADER_BASES.join(", ")}, or a shader pack's id.`);
+    if (bg.palette !== undefined) {
+      if (!Array.isArray(bg.palette)) err("background.palette must be four colours, darkest first.");
+      else {
+        const bad = bg.palette.findIndex((c) => typeof c !== "string" || !COLOR.test(c));
+        if (bad >= 0) err(`background.palette[${bad}] must be a colour like "#1B2A55".`);
+        else if (bg.palette.length !== 4) err("background.palette must be four colours, darkest first.");
+      }
+    }
+    range(bg.speed, ...L.speed, "background.speed");
+  } else if (bg.kind === "photos") {
+    unknown(bg, ["kind", "source", "folder", "kenBurns", "interval"], "background");
+    if (!["folder", "pictures", "bundled"].includes(bg.source)) err("background.source must be folder, pictures or bundled.");
+    else if (bg.folder !== undefined && typeof bg.folder !== "string") err("background.folder must be a path.");
+    else if (bg.source === "pictures") { if (bg.folder !== undefined) err("background.folder is only for the folder and bundled sources."); }
+    else if (bg.source === "folder") {
+      if (bg.folder === undefined) err("background.folder is needed for the folder source.");
+      else if (bg.folder.startsWith("/") || bg.folder.startsWith("~")) err(`background.folder: "${bg.folder}" is outside the scene. Scenes from packs may only use photos inside their own folder.`);
+      else photoFolder(bg.folder);
+    } else photoFolder(bg.folder ?? "photos");
+    flag(bg.kenBurns, "background.kenBurns");
+    range(bg.interval, ...L.interval, "background.interval");
+  } else if (bg.kind === "color") {
+    unknown(bg, ["kind", "colors", "drift"], "background");
+    if (!Array.isArray(bg.colors)) err("background.colors must list 1 to 6 colours.");
+    else {
+      const bad = bg.colors.findIndex((c) => typeof c !== "string" || !COLOR.test(c));
+      if (bad >= 0) err(`background.colors[${bad}] must be a colour like "#1B2A55".`);
+      else if (bg.colors.length < 1 || bg.colors.length > L.colors) err("background.colors must list 1 to 6 colours.");
+    }
+    flag(bg.drift, "background.drift");
+  } else {
+    unknown(bg, ["kind", "file"], "background");
+    if (typeof bg.file !== "string") err("background.file must name a picture in the scene.");
+    else {
+      const f = file(bg.file, "background.file", ["png", "jpeg", "heic"]);
+      if (f && f.size > L.fileBytes) err("background.file is larger than 20 MB.");
+      else if (f && f.pixels && f.pixels < L.imagePixels) err(`background.file is ${f.pixels} px; a screen needs at least 512 px.`);
+    }
+  }
+
+  if (root.layers !== undefined) {
+    if (!Array.isArray(root.layers)) err("\"layers\" must be a list.");
+    else {
+      if (root.layers.length > L.layers) err(`The scene has ${root.layers.length} layers; the limit is 12.`);
+      root.layers.slice(0, L.layers).forEach((layer, i) => {
+        const label = `layers[${i}]`;
+        if (!isObj(layer)) return err(`${label} must be an object with a "kind".`);
+        if (!Object.hasOwn(SCENE_LAYERS, layer.kind)) return err(`${label}.kind must be one of ${Object.keys(SCENE_LAYERS).join(", ")}.`);
+        unknown(layer, ["kind", "position", "size", ...SCENE_LAYERS[layer.kind]], label);
+        if (layer.position !== undefined && !SCENE_POSITIONS.includes(layer.position)) err(`${label}.position must be one of ${SCENE_POSITIONS.join(", ")}.`);
+        range(layer.size, ...L.size, `${label}.size`);
+        switch (layer.kind) {
+          case "clock":
+            if (layer.style !== undefined && !CLOCK_STYLES.includes(layer.style)) err(`${label}.style must be one of ${CLOCK_STYLES.join(", ")}.`);
+            if (layer.font !== undefined && !SCENE_FONTS.includes(layer.font)) err(`${label}.font must be one of ${SCENE_FONTS.join(", ")}.`);
+            flag(layer.seconds, `${label}.seconds`); flag(layer.date, `${label}.date`);
+            break;
+          case "weather":
+            if (layer.units !== undefined && !["metric", "imperial"].includes(layer.units)) err(`${label}.units must be metric or imperial.`);
+            break;
+          case "calendar":
+            if (layer.count !== undefined && !(Number.isInteger(layer.count) && layer.count >= L.calendar[0] && layer.count <= L.calendar[1])) err(`${label}.count must be a whole number from 1 to 8.`);
+            break;
+          case "widgets":
+            if (layer.ids !== undefined) {
+              if (!Array.isArray(layer.ids) || layer.ids.length > L.widgets) err(`${label}.ids must list at most 8 widget ids.`);
+              else {
+                const bad = layer.ids.findIndex((id) => !isWidgetID(id));
+                if (bad >= 0) err(`${label}.ids[${bad}] must be a widget id: letters, digits, dots and hyphens.`);
+                else if (new Set(layer.ids).size !== layer.ids.length) err(`${label}.ids lists a widget twice.`);
+              }
+            }
+            break;
+          case "quote":
+            if (layer.source !== undefined && layer.source !== "bundled") err(`${label}.source must be bundled.`);
+            break;
+          case "text":
+            if (typeof layer.text !== "string") err(`${label}.text is needed for a text layer.`);
+            else if (!layer.text.trim() || [...layer.text].length > L.text) err(`${label}.text must be 1 to 280 characters.`);
+            break;
+        }
+      });
+    }
+  }
+  if (root.accent !== undefined && !(typeof root.accent === "string" && COLOR.test(root.accent))) err("\"accent\" must be a colour like \"#FF8A3D\".");
+  range(root.dim, ...L.dim, "dim");
+  range(root.fadeIn, ...L.fadeIn, "fadeIn");
+  flag(root.burnInShift, "burnInShift");
 }
 
 export const isPackKind = (kind) => Object.hasOwn(PACKS, kind);

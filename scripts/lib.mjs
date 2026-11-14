@@ -19,6 +19,7 @@ export const KINDS = {
   layouts: { ext: ".atelierlayouts", maxZip: 256 * 1024, folder: "mods", pack: true },
   effects: { ext: ".ateliereffects", maxZip: 256 * 1024, folder: "mods", pack: true },
   look: { ext: ".atelierlook", maxZip: 80 * 1024 * 1024, folder: "mods", pack: true },
+  scene: { ext: ".atelierscene", maxZip: 40 * 1024 * 1024, folder: "mods", pack: true },
 };
 
 export const LIMITS = {
@@ -45,6 +46,7 @@ export const ALLOWED = {
   layouts: [".json", ".md", ".txt"],
   effects: [".json", ".md", ".txt"],
   look: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif", ".icns", ".wav", ".caf", ".m4a", ".aiff", ".aif", ".mp3", ".tiff"],
+  scene: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif"],
 };
 
 export const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");

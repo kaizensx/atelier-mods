@@ -1,0 +1,24 @@
+{
+  "id": "com.example.paper-lanterns",
+  "name": "Paper Lanterns",
+  "author": "Atelier Examples",
+  "github": "kaizensx",
+  "version": "1.0.0",
+  "kind": "scene",
+  "summary": "A screen saver scene: lanterns rising over a dark river, a quiet clock and a quote of the day.",
+  "screenshots": [
+    {
+      "file": "screenshots/1.png",
+      "caption": "Paper Lanterns, sketched by Atelier's scene preview."
+    }
+  ],
+  "minAtelier": "1.0.0",
+  "homepage": "https://github.com/kaizensx/Atelier/tree/main/examples/packs/paper-lanterns.atelierscene",
+  "license": "MIT",
+  "tags": [
+    "screen-saver",
+    "quotes",
+    "calm"
+  ],
+  "changes": "First release in the catalog."
+}

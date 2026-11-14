@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "id": "com.example.paper-lanterns",
+  "name": "Paper Lanterns",
+  "version": "1.0.0",
+  "author": "Atelier Examples",
+  "description": "Lanterns rising over a dark river, with a quiet clock and a quote of the day.",
+  "background": { "kind": "image", "file": "lanterns.jpg" },
+  "layers": [
+    { "kind": "clock", "style": "minimal", "position": "topLeading", "size": 0.14, "date": true, "font": "serif" },
+    { "kind": "quote", "position": "bottom", "size": 0.22, "source": "bundled" }
+  ],
+  "accent": "#FFC77A",
+  "dim": 0.15,
+  "burnInShift": true,
+  "fadeIn": 2
+}
