@@ -20,6 +20,7 @@ export const KINDS = {
   effects: { ext: ".ateliereffects", maxZip: 256 * 1024, folder: "mods", pack: true },
   look: { ext: ".atelierlook", maxZip: 80 * 1024 * 1024, folder: "mods", pack: true },
   scene: { ext: ".atelierscene", maxZip: 40 * 1024 * 1024, folder: "mods", pack: true },
+  rules: { ext: ".atelierrules", maxZip: 256 * 1024, folder: "mods", pack: true },
 };
 
 export const LIMITS = {
@@ -33,7 +34,16 @@ export const LIMITS = {
   pluginScript: 512 * 1024,
 };
 
-export const PERMISSIONS = ["network", "notifications", "openURL", "appearance", "menuBar", "liveActivities", "scenes", "panels"];
+export const PERMISSIONS = ["network", "notifications", "openURL", "appearance", "menuBar", "liveActivities", "scenes", "panels",
+  "shortcuts", "windows", "windowTitles", "windowControl", "hud", "audio", "audioControl"];
+
+// The events a plugin hears only with a permission (PluginEvent.permission in the app).
+export const EVENT_PERMISSIONS = {
+  windowFocused: "windows", windowMoved: "windows", appLaunched: "windows", appQuit: "windows", fullScreenChanged: "windows",
+  volumeChanged: "audio", outputChanged: "audio", inputMuteChanged: "audio",
+};
+// At most this many commands may ask for a global shortcut (PluginShortcutPolicy.maxPerPlugin).
+export const MAX_SHORTCUTS = 8;
 
 // Files a package may hold, by kind. Anything else is refused: no executables, no archives.
 export const ALLOWED = {
@@ -42,11 +52,12 @@ export const ALLOWED = {
   native: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".dylib"],
   icons: [".json", ".md", ".txt", ".png", ".heic", ".heif", ".icns"],
   sounds: [".json", ".md", ".txt", ".wav", ".caf", ".m4a"],
-  shader: [".json", ".md", ".txt"],
+  shader: [".json", ".md", ".txt", ".metal"],
   layouts: [".json", ".md", ".txt"],
   effects: [".json", ".md", ".txt"],
-  look: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif", ".icns", ".wav", ".caf", ".m4a", ".aiff", ".aif", ".mp3", ".tiff"],
+  look: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif", ".icns", ".wav", ".caf", ".m4a", ".aiff", ".aif", ".mp3", ".tiff", ".metal"],
   scene: [".json", ".md", ".txt", ".png", ".jpg", ".jpeg", ".heic", ".heif"],
+  rules: [".json", ".md", ".txt"],
 };
 
 export const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
@@ -153,7 +164,7 @@ export function imageSize(buf) {
   return null;
 }
 
-// --- The permission scan (same patterns as ModScan in the app) -----------------------------
+// --- The permission scan (ModScan's patterns in the app, and the permissions of Atelier 1.2) --
 
 export function stripComments(src) {
   let out = "", i = 0, quote = null;
@@ -187,12 +198,23 @@ const SCAN = [
   ["liveActivities", /\batelier\s*\.\s*liveActivity\b/],
   ["scenes", /\batelier\s*\.\s*scenes\b/],
   ["panels", /\batelier\s*\.\s*panel\b/],
+  // Atelier 1.2. Window and sound events are heard through atelier.on with the event's name.
+  // "shortcuts" and "windowTitles" are not here: a shortcut without its permission still works
+  // in Command, and titles come with the window events (validate.mjs weighs both).
+  ["windows", /\batelier\s*\.\s*on\s*\(\s*(["'`])(windowFocused|windowMoved|appLaunched|appQuit|fullScreenChanged)\1/],
+  ["windowControl", /\batelier\s*\.\s*(windows|workspaces)\b/],
+  ["hud", /\batelier\s*\.\s*hud\b/],
+  ["audio", /\batelier\s*\.\s*on\s*\(\s*(["'`])(volumeChanged|outputChanged|inputMuteChanged)\1/],
+  ["audioControl", /\batelier\s*\.\s*audio\b/],
 ];
 
 // The call each permission is for, for error messages.
 export const PERMISSION_CALLS = {
   network: "atelier.http", notifications: "atelier.notify", openURL: "atelier.openURL", appearance: "atelier.theme",
   menuBar: "atelier.menuBarItem", liveActivities: "atelier.liveActivity", scenes: "atelier.scenes", panels: "atelier.panel",
+  shortcuts: "atelier.command with a shortcut", windows: "atelier.on with a window event", windowTitles: "window titles",
+  windowControl: "atelier.windows or atelier.workspaces", hud: "atelier.hud", audio: "atelier.on with a sound event",
+  audioControl: "atelier.audio",
 };
 
 export function scanPermissions(src) {

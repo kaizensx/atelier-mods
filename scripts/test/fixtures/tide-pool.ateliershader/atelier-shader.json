@@ -1,0 +1,18 @@
+{
+  "format": 2,
+  "id": "com.example.tide-pool",
+  "name": "Tide Pool",
+  "version": "1.0.0",
+  "author": "Atelier",
+  "description": "Light rippling over a shallow pool. Its own fragment code, drawn in teal and sea glass; your pointer stirs the water.",
+  "base": "oceanCaustics",
+  "fragment": "shade.metal",
+  "palette": ["#03141C", "#0B3C48", "#2A8C8A", "#E2F6EC"],
+  "speed": 0.8,
+  "intensity": 0.5,
+  "grain": 0.1,
+  "scale": 1.0,
+  "dim": 0.05,
+  "cycle": "clock",
+  "pointer": true
+}

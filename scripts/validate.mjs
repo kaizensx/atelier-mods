@@ -19,8 +19,8 @@ import { readFileSync, existsSync, statSync, realpathSync } from "node:fs";
 import { join, extname, basename, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
-  KINDS, LIMITS, PERMISSIONS, PERMISSION_CALLS, ALLOWED, isReverseDNS, parseVersion, compareVersions, walk, contentHash,
-  binaryKind, isMachO, imageSize, scanPermissions, checkSchema, zipFolder, listMods, findPackage, readJSON,
+  KINDS, LIMITS, PERMISSIONS, PERMISSION_CALLS, EVENT_PERMISSIONS, MAX_SHORTCUTS, ALLOWED, isReverseDNS, parseVersion, compareVersions, walk, contentHash,
+  binaryKind, isMachO, imageSize, scanPermissions, stripComments, checkSchema, zipFolder, listMods, findPackage, readJSON,
 } from "./lib.mjs";
 import { validatePack } from "./packs.mjs";
 import { authorOf, isEd25519Key, ed25519Verify } from "./lib.mjs";
@@ -114,6 +114,21 @@ export function validateMod({ tier, id: folderName, dir }) {
     for (const p of asked) if (!PERMISSIONS.includes(p)) err(`manifest.json asks for "${p}", which is not a permission.`, pkgRel);
     const a = [...asked].sort().join(","), d = [...declared].sort().join(",");
     if (a !== d) err(`mod.json lists permissions [${d}] but manifest.json asks for [${a}]. They must match.`);
+    // The manifest rules of Atelier 1.2 (PluginManifest.parse): titles come with window events
+    // only, an onEvent activation needs its event's permission, and at most eight shortcuts.
+    if (asked.has("windowTitles") && !asked.has("windows")) err("manifest.json: windowTitles adds titles to window events: ask for windows too.", pkgRel);
+    const listens = new Set();
+    for (const trigger of Array.isArray(manifest.activation) ? manifest.activation : []) {
+      const needed = typeof trigger === "string" && trigger.startsWith("onEvent:") ? EVENT_PERMISSIONS[trigger.slice(8)] : null;
+      if (!needed) continue;
+      listens.add(needed);
+      if (!asked.has(needed)) err(`manifest.json: activation ${trigger} needs the ${needed} permission.`, pkgRel);
+    }
+    const commands = Array.isArray(manifest.contributes?.commands) ? manifest.contributes.commands : [];
+    const shortcuts = commands.filter((c) => c && typeof c === "object" && typeof c.shortcut === "string").length;
+    if (shortcuts > MAX_SHORTCUTS) err(`manifest.json: at most ${MAX_SHORTCUTS} commands may have a shortcut.`, pkgRel);
+    if (shortcuts && !asked.has("shortcuts")) warn("manifest.json: shortcuts are shown in Command only. Ask for the shortcuts permission to bind them in every app.", pkgRel);
+    if (shortcuts) listens.add("shortcuts");
     const hosts = (manifest.network?.hosts ?? []).map((h) => h.toLowerCase()).sort().join(",");
     if (hosts !== (mod.hosts ?? []).map((h) => h.toLowerCase()).sort().join(",")) err("mod.json \"hosts\" must equal manifest.json network.hosts.");
     const entry = manifest.entry ?? "main.js";
@@ -122,17 +137,27 @@ export function validateMod({ tier, id: folderName, dir }) {
     else if (script.size > LIMITS.pluginScript) err(`${entry} is larger than 512 KB.`, pkgRel);
     // Declared versus used: the chips on the card must tell the truth.
     const used = new Set();
-    let dynamic = false;
+    let dynamic = false, commandCalls = false, codeShortcut = false;
     for (const f of files.filter((f) => f.path.endsWith(".js"))) {
       const scan = scanPermissions(readFileSync(f.full, "utf8"));
       scan.used.forEach((p) => used.add(p));
       dynamic ||= scan.dynamicAccess;
       const code = readFileSync(f.full, "utf8");
+      const bare = stripComments(code);
+      commandCalls ||= /\batelier\s*\.\s*command\b/.test(bare);
+      codeShortcut ||= /\batelier\s*\.\s*command\s*\(\s*\{[^;]*?\bshortcut\s*:/.test(bare);
       if (/\beval\s*\(|\bnew\s+Function\s*\(/.test(code)) warn(`${f.path}: eval or new Function makes review harder. Reviewers will look closely.`, pkgRel);
     }
     for (const p of used) if (!asked.has(p)) err(`The script calls ${PERMISSION_CALLS[p]} but does not ask for "${p}".`, pkgRel);
-    for (const p of asked) if (!used.has(p)) {
-      (dynamic ? warn : err)(`It asks for "${p}" but the script never uses it. Ask only for what it needs.`, pkgRel);
+    // Titles arrive in the window events, so windowTitles is in use whenever they are heard. A
+    // command's shortcut without the permission still works in Command, so it is never an error.
+    const evident = new Set([...used, ...listens]);
+    if (evident.has("windows")) evident.add("windowTitles");
+    if (codeShortcut) evident.add("shortcuts");
+    for (const p of asked) if (!evident.has(p)) {
+      // A command's shortcut may be set where the scan cannot see it (a spec built elsewhere).
+      const unsure = dynamic || (p === "shortcuts" && commandCalls);
+      (unsure ? warn : err)(`It asks for "${p}" but the script never uses it. Ask only for what it needs.`, pkgRel);
     }
     if (dynamic) warn("The script reaches atelier dynamically (atelier[...] or passes atelier around), so the permission scan cannot follow it.", pkgRel);
   } else {

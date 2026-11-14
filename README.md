@@ -1,7 +1,7 @@
 # Atelier Mods
 
 The community catalog for [Atelier](https://github.com/kaizensx/Atelier): plugins, themes and
-data-only packs (icons, sounds, shaders, snap layouts, minimise effects, Looks and screen saver scenes) anyone can
+data-only packs (icons, sounds, shaders, snap layouts, minimise effects, Looks, screen saver scenes and rule packs) anyone can
 share, and, in a separate tier, native mods for Macs with the Dock Bridge.
 
 Atelier's **Mods** chapter reads this repository. Browse, install, update and remove from there;

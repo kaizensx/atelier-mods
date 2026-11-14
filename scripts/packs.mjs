@@ -1,7 +1,9 @@
-// Data-only packs: icon packs, sound packs, shader packs, layout packs, effect packs, Looks and
-// screen saver scenes. The same rules as Sources/DockCore/ModPacks.swift and
-// Sources/DockCore/ScreenSaverScene.swift in the Atelier app (docs/PACKS.md, docs/SCREENSAVER.md there).
-// Change both together. Nothing in a pack runs; every file is checked by its own bytes.
+// Data-only packs: icon packs, sound packs, shader packs, layout packs, effect packs, Looks,
+// screen saver scenes and rule packs. The same rules as Sources/DockCore/ModPacks.swift,
+// ScreenSaverScene.swift, ShaderCode.swift and AutomationRules.swift in the Atelier app
+// (docs/PACKS.md, docs/SCREENSAVER.md there). Change both together. Nothing in a pack runs in the
+// catalog; every file is checked by its own bytes, and a shader pack's Metal code by the same
+// whitelist Atelier applies before Metal sees it.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -15,7 +17,14 @@ export const PACKS = {
   effects: { ext: ".ateliereffects", manifest: "atelier-effects.json", maxZip: 256 * 1024 },
   look: { ext: ".atelierlook", manifest: "atelier-look.json", maxZip: 80 * 1024 * 1024 },
   scene: { ext: ".atelierscene", manifest: "atelier-scene.json", maxZip: 40 * 1024 * 1024 },
+  rules: { ext: ".atelierrules", manifest: "atelier-rules.json", maxZip: 256 * 1024 },
 };
+
+// The largest folder on disk, whatever its zip was: ModPackKind.maxBundleBytes in the app.
+const MB = 1024 * 1024;
+export const BUNDLE_BYTES = { icons: 150 * MB, sounds: 40 * MB, shader: MB, layouts: MB, effects: MB, look: 200 * MB, scene: 60 * MB, rules: MB };
+// The manifest formats each kind reads. Format 2 shader packs may carry a fragment shader.
+export const PACK_FORMATS = { shader: [1, 2] };
 
 export const PACK_LIMITS = {
   manifest: 256 * 1024, icons: 600, iconBytes: 1024 * 1024, iconPixels: 256, soundBytes: 1024 * 1024,
@@ -27,15 +36,22 @@ export const PACK_LIMITS = {
 export const SCENE_LIMITS = {
   layers: 12, fileBytes: 20 * 1024 * 1024, bundleBytes: 60 * 1024 * 1024, text: 280, colors: 6, widgets: 8,
   calendar: [1, 8], photos: 60, dim: [0, 0.8], fadeIn: [0, 10], size: [0.05, 1], interval: [4, 600], speed: [0.2, 2.5], imagePixels: 512,
+  // A shader background's live wallpaper options.
+  intensity: [0, 1], grain: [0, 1], scale: [0.6, 1.8], shaderDim: [0, 0.7], timelapse: [1, 1440], every: [20, 3600], tour: 40,
 };
 export const SCENE_POSITIONS = ["center", "top", "bottom", "leading", "trailing", "topLeading", "topTrailing", "bottomLeading", "bottomTrailing"];
 export const SCENE_LAYERS = {
-  clock: ["style", "seconds", "date", "font"], weather: ["units"], nowPlaying: [], calendar: ["count"],
-  widgets: ["ids"], quote: ["source"], text: ["text"], vitals: [],
+  clock: ["style", "seconds", "date", "font", "color"], weather: ["units"], nowPlaying: [], calendar: ["count"],
+  widgets: ["ids"], quote: ["source"], text: ["text"], vitals: [], plugin: ["plugin", "view"],
 };
 export const CLOCK_STYLES = ["digital", "flip", "analog", "word", "minimal"];
 export const SCENE_FONTS = ["system", "rounded", "serif", "mono"];
 const BUILT_IN_SCENE = "net.dasantos.atelier.scene.";
+// Shaders that draw over the owner's own wallpaper: the owner's own scenes only, never a pack.
+const WALLPAPER_SHADERS = ["wallpaperRain", "wallpaperRipple", "wallpaperDepth"];
+// "desktop" plays what Live Wallpaper shows; "weather" follows the weather in live.json.
+const SCENE_SHADERS = ["desktop", "weather"];
+const CYCLES = ["clock", "day", "dusk", "night"];
 
 export const SHADER_BASES = ["liquidLight", "nebula", "auroraSilk", "topography", "glassRain", "silkWaves", "gradientMesh",
   "starfield", "retroHorizon", "oceanCaustics", "northernLights", "lavaLamp", "inkInWater", "fireflies", "liquidChrome"];
@@ -156,6 +172,9 @@ const isBundleID = (id) => typeof id === "string" && id.length >= 3 && id.length
 const isSafePath = (p) => typeof p === "string" && p.length > 0 && p.length <= 200 && !p.startsWith("/") && !p.startsWith("~") &&
   !p.includes("\\") && !p.includes("\0") && p.split("/").every((x) => x && x !== "." && x !== ".." && !x.startsWith("."));
 const num = (v) => typeof v === "number" && Number.isFinite(v);
+// ThemeColor(hex:) in the app: #RGB, #RRGGBB or #RRGGBBAA, spaces around it ignored.
+const COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+const isColor = (c) => typeof c === "string" && COLOR.test(c.replace(/^[\p{Zs}\t]+|[\p{Zs}\t]+$/gu, ""));
 const HEADER = ["format", "id", "name", "version", "author", "description"];
 
 /**
@@ -173,7 +192,7 @@ export function validatePack(kind, dir, files, themeSchema) {
     if (["wav", "caf", "m4a"].includes(format)) fact.seconds = seconds(buf, format);
     facts.set(f.path, fact);
   }
-  const header = check(kind, "", facts, (p) => readFileSync(join(dir, p), "utf8"), errors, themeSchema);
+  const header = check(kind, "", facts, (p) => readFileSync(join(dir, p)), errors, themeSchema);
   return { errors, header };
 }
 
@@ -185,18 +204,25 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
   if (!fact) { err(`${spec.manifest} is missing.`); return null; }
   if (fact.size > PACK_LIMITS.manifest) { err(`${spec.manifest} is larger than 256 KB.`); return null; }
   let root;
-  try { root = JSON.parse(read(at(spec.manifest))); } catch (e) { err(`${spec.manifest} is not valid JSON: ${e.message}`); return null; }
+  try { root = JSON.parse(read(at(spec.manifest)).toString("utf8")); } catch (e) { err(`${spec.manifest} is not valid JSON: ${e.message}`); return null; }
   if (!root || typeof root !== "object" || Array.isArray(root)) { err(`${spec.manifest} is not a JSON object.`); return null; }
 
-  const allowed = { icons: ["icons"], sounds: ["sounds", "typing"], shader: ["base", "palette", "speed", "intensity", "grain", "scale", "dim", "cycle", "pointer"],
+  const allowed = { icons: ["icons"], sounds: ["sounds", "typing"],
+    shader: ["base", "palette", "speed", "intensity", "grain", "scale", "dim", "cycle", "pointer", "fragment"],
     layouts: ["layouts"], effects: ["effects"], look: ["theme", "wallpaper", "dock", "iconPack", "soundPack"],
-    scene: ["background", "layers", "accent", "dim", "burnInShift", "fadeIn"] }[kind];
+    scene: ["background", "layers", "accent", "dim", "burnInShift", "fadeIn"], rules: ["rules"] }[kind];
   for (const key of Object.keys(root)) if (!HEADER.includes(key) && !allowed.includes(key) && !key.startsWith("x-")) err(`${spec.manifest}: unknown key "${key}".`);
-  if (root.format !== 1) err(`${spec.manifest} needs "format": 1.`);
+  const formats = PACK_FORMATS[kind] ?? [1];
+  if (!formats.includes(root.format)) err(`${spec.manifest} needs "format": ${formats.join(" or ")}.`);
   if (!isReverseDNS(root.id)) err(`${spec.manifest} needs a reverse-DNS "id".`);
   if (typeof root.version !== "string" || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(root.version)) err(`${spec.manifest} needs a "version" like 1.0.0.`);
   if (typeof root.name !== "string" || !root.name.trim() || root.name.length > 60) err(`${spec.manifest} needs a "name" of 1 to 60 characters.`);
   if (root.description !== undefined && (typeof root.description !== "string" || root.description.length > 400)) err("description must be text of at most 400 characters.");
+  if (typeof root.author === "string" && [...root.author].length > 80) err(`${spec.manifest}: the author is longer than 80 characters.`);
+  if (!prefix && kind !== "scene") {
+    const total = [...facts.values()].reduce((sum, f) => sum + f.size, 0);
+    if (total > BUNDLE_BYTES[kind]) err(`The pack is ${Math.floor(total / MB)} MB; the limit is ${BUNDLE_BYTES[kind] / MB} MB.`);
+  }
 
   const file = (path, label, formats) => {
     if (!isSafePath(path)) { err(`${label}: "${path}" is not a path inside the pack.`); return null; }
@@ -211,6 +237,16 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
     if (v === undefined) return;
     if (!num(v)) err(`${label} must be a number.`);
     else if (v < lo || v > hi) err(`${label} must be between ${lo} and ${hi}.`);
+  };
+  // A format 2 shader pack's code: a .metal file inside the pack, checked as ShaderCode.validate does.
+  const fragment = (path) => {
+    if (!isSafePath(path) || !path.toLowerCase().endsWith(".metal")) return err(`fragment: "${path}" must be a .metal file inside the pack.`);
+    const f = facts.get(at(path));
+    if (!f) return err(`fragment: ${path} is not in the pack.`);
+    if (f.size > SHADER_CODE.maxBytes) return err(`fragment: ${path} is larger than ${SHADER_CODE.maxBytes / 1024} KB.`);
+    let text;
+    try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(read(at(path))); } catch { return err(`fragment: ${path} is not text.`); }
+    for (const problem of validateShaderCode(text) ?? []) err(`${path} ${problem.description}.`);
   };
   const sound = (path, label, limit) => {
     const f = file(path, label, ["wav", "caf", "m4a"]);
@@ -261,13 +297,18 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
   }
   if (kind === "shader") {
     if (!SHADER_BASES.includes(root.base)) err(`"base" must be one of ${SHADER_BASES.join(", ")}.`);
-    if (root.palette !== undefined && !(Array.isArray(root.palette) && root.palette.length === 4 && root.palette.every((c) => /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c)))) {
+    if (root.palette !== undefined && !(Array.isArray(root.palette) && root.palette.length === 4 && root.palette.every(isColor))) {
       err("\"palette\" must be four colours like \"#1B2A55\", darkest first.");
     }
     range(root.speed, 0.2, 2.5, "speed"); range(root.intensity, 0, 1, "intensity"); range(root.grain, 0, 1, "grain");
     range(root.scale, 0.6, 1.8, "scale"); range(root.dim, 0, 0.7, "dim");
     if (root.cycle !== undefined && !["clock", "day", "dusk", "night"].includes(root.cycle)) err("\"cycle\" must be one of clock, day, dusk, night.");
     if (root.pointer !== undefined && typeof root.pointer !== "boolean") err("\"pointer\" must be true or false.");
+    if (root.fragment !== undefined) {
+      if (root.format !== 2) err("\"fragment\" needs \"format\": 2.");
+      else if (typeof root.fragment !== "string") err("\"fragment\" must be the path of a .metal file in the pack.");
+      else fragment(root.fragment);
+    } else if (root.format === 2) err("A format 2 shader pack needs \"fragment\": the path of its .metal file.");
   }
   if (kind === "layouts") {
     const list = root.layouts;
@@ -344,7 +385,7 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
       err(`${theme} has no atelier-theme.json.`);
     } else if (themeSchema) {
       try {
-        for (const problem of checkSchema(themeSchema, JSON.parse(read(at(`${theme}/atelier-theme.json`))))) err(`${theme}/atelier-theme.json ${problem}`);
+        for (const problem of checkSchema(themeSchema, JSON.parse(read(at(`${theme}/atelier-theme.json`)).toString("utf8")))) err(`${theme}/atelier-theme.json ${problem}`);
       } catch (e) { err(`${theme}/atelier-theme.json is not valid JSON: ${e.message}`); }
     }
     const ref = (value, sub, label) => {
@@ -382,12 +423,12 @@ function check(kind, prefix, facts, read, errors, themeSchema) {
     ref(root.soundPack, "sounds", "soundPack");
   }
   if (kind === "scene") checkScene(root, facts, at, err, file, range);
+  if (kind === "rules") checkRules(root, err);
   return { id: root.id, name: root.name, version: root.version };
 }
 
 // --- Screen saver scenes -----------------------------------------------------------------
 
-const COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 const isWidgetID = (id) => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(id);
 
 function checkScene(root, facts, at, err, file, range) {
@@ -406,6 +447,29 @@ function checkScene(root, facts, at, err, file, range) {
   const unknown = (obj, allowed, label) => { for (const key of Object.keys(obj)) if (!allowed.includes(key) && !key.startsWith("x-")) err(`${label}: unknown key "${key}".`); };
   const flag = (v, label) => { if (v !== undefined && typeof v !== "boolean") err(`${label} must be true or false.`); };
   const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+  // The live wallpaper options of a shader background (ScreenSaverScenes.liveOptions).
+  const liveOptions = (bg) => {
+    range(bg.intensity, ...L.intensity, "background.intensity"); range(bg.grain, ...L.grain, "background.grain");
+    range(bg.scale, ...L.scale, "background.scale"); range(bg.dim, ...L.shaderDim, "background.dim");
+    if (bg.cycle !== undefined && !CYCLES.includes(bg.cycle)) err("background.cycle must be clock, day, dusk or night.");
+    flag(bg.touch, "background.touch");
+    if (bg.timelapse !== undefined) {
+      if (!num(bg.timelapse)) err("background.timelapse must be a number.");
+      else if (bg.timelapse < 0 || bg.timelapse > L.timelapse[1]) err(`background.timelapse must be between 0 and ${L.timelapse[1]}.`);
+      else if (bg.timelapse !== 0 && bg.timelapse < L.timelapse[0]) err("background.timelapse is the minutes one day takes: 0, or 1 to 1440.");
+    }
+    if (bg.tour !== undefined) {
+      if (!Array.isArray(bg.tour) || bg.tour.some((n) => typeof n !== "string")) err("background.tour must be a list of shader names.");
+      else if (bg.tour.length > L.tour) err(`background.tour holds at most ${L.tour} shaders.`);
+      else {
+        for (const name of bg.tour) {
+          if (WALLPAPER_SHADERS.includes(name)) { err(`background.tour: ${name} draws over your own wallpaper, so only scenes you make yourself may use it.`); break; }
+          if (!SHADER_BASES.includes(name) && !SCENE_SHADERS.includes(name) && !isReverseDNS(name)) { err(`background.tour: ${name} is not a shader or a shader pack's id.`); break; }
+        }
+      }
+    }
+    range(bg.every, ...L.every, "background.every");
+  };
   const photoFolder = (path) => {
     if (!isSafePath(path)) return err(`background.folder: "${path}" is not a folder inside the scene.`);
     const photos = [...facts].filter(([p, f]) => p.startsWith(at(path) + "/") && ["png", "jpeg", "heic"].includes(f.format));
@@ -422,23 +486,29 @@ function checkScene(root, facts, at, err, file, range) {
   else if (!isObj(bg)) err("\"background\" must be an object with a \"kind\".");
   else if (!["shader", "photos", "color", "image"].includes(bg.kind)) err("background.kind must be shader, photos, color or image.");
   else if (bg.kind === "shader") {
-    unknown(bg, ["kind", "shader", "palette", "speed"], "background");
-    if (["wallpaperRain", "wallpaperRipple", "wallpaperDepth"].includes(bg.shader)) err(`background.shader: ${bg.shader} draws over your own wallpaper, so only scenes you make yourself may use it.`);
+    unknown(bg, ["kind", "shader", "palette", "speed", "intensity", "grain", "scale", "dim", "cycle", "touch", "timelapse", "tour", "every"], "background");
+    if (typeof bg.shader !== "string") err("background.shader must name a shader.");
+    // desktop and weather take the live options only; their palette and speed are not read.
+    else if (SCENE_SHADERS.includes(bg.shader)) liveOptions(bg);
+    else if (WALLPAPER_SHADERS.includes(bg.shader)) err(`background.shader: ${bg.shader} draws over your own wallpaper, so only scenes you make yourself may use it.`);
     else if (!SHADER_BASES.includes(bg.shader) && !isReverseDNS(bg.shader)) err(`background.shader must be one of ${SHADER_BASES.join(", ")}, or a shader pack's id.`);
-    if (bg.palette !== undefined) {
-      if (!Array.isArray(bg.palette)) err("background.palette must be four colours, darkest first.");
-      else {
-        const bad = bg.palette.findIndex((c) => typeof c !== "string" || !COLOR.test(c));
-        if (bad >= 0) err(`background.palette[${bad}] must be a colour like "#1B2A55".`);
-        else if (bg.palette.length !== 4) err("background.palette must be four colours, darkest first.");
+    else {
+      if (bg.palette !== undefined) {
+        if (!Array.isArray(bg.palette)) err("background.palette must be four colours, darkest first.");
+        else {
+          const bad = bg.palette.findIndex((c) => !isColor(c));
+          if (bad >= 0) err(`background.palette[${bad}] must be a colour like "#1B2A55".`);
+          else if (bg.palette.length !== 4) err("background.palette must be four colours, darkest first.");
+        }
       }
+      range(bg.speed, ...L.speed, "background.speed");
+      liveOptions(bg);
     }
-    range(bg.speed, ...L.speed, "background.speed");
   } else if (bg.kind === "photos") {
     unknown(bg, ["kind", "source", "folder", "kenBurns", "interval"], "background");
-    if (!["folder", "pictures", "bundled"].includes(bg.source)) err("background.source must be folder, pictures or bundled.");
+    if (!["folder", "pictures", "bundled", "library"].includes(bg.source)) err("background.source must be folder, pictures, bundled or library.");
     else if (bg.folder !== undefined && typeof bg.folder !== "string") err("background.folder must be a path.");
-    else if (bg.source === "pictures") { if (bg.folder !== undefined) err("background.folder is only for the folder and bundled sources."); }
+    else if (bg.source === "pictures" || bg.source === "library") { if (bg.folder !== undefined) err("background.folder is only for the folder and bundled sources."); }
     else if (bg.source === "folder") {
       if (bg.folder === undefined) err("background.folder is needed for the folder source.");
       else if (bg.folder.startsWith("/") || bg.folder.startsWith("~")) err(`background.folder: "${bg.folder}" is outside the scene. Scenes from packs may only use photos inside their own folder.`);
@@ -450,7 +520,7 @@ function checkScene(root, facts, at, err, file, range) {
     unknown(bg, ["kind", "colors", "drift"], "background");
     if (!Array.isArray(bg.colors)) err("background.colors must list 1 to 6 colours.");
     else {
-      const bad = bg.colors.findIndex((c) => typeof c !== "string" || !COLOR.test(c));
+      const bad = bg.colors.findIndex((c) => !isColor(c));
       if (bad >= 0) err(`background.colors[${bad}] must be a colour like "#1B2A55".`);
       else if (bg.colors.length < 1 || bg.colors.length > L.colors) err("background.colors must list 1 to 6 colours.");
     }
@@ -481,6 +551,7 @@ function checkScene(root, facts, at, err, file, range) {
             if (layer.style !== undefined && !CLOCK_STYLES.includes(layer.style)) err(`${label}.style must be one of ${CLOCK_STYLES.join(", ")}.`);
             if (layer.font !== undefined && !SCENE_FONTS.includes(layer.font)) err(`${label}.font must be one of ${SCENE_FONTS.join(", ")}.`);
             flag(layer.seconds, `${label}.seconds`); flag(layer.date, `${label}.date`);
+            if (layer.color !== undefined && !(layer.color === "accent" || layer.color === "white" || isColor(layer.color))) err(`${label}.color must be accent, white or #RRGGBB.`);
             break;
           case "weather":
             if (layer.units !== undefined && !["metric", "imperial"].includes(layer.units)) err(`${label}.units must be metric or imperial.`);
@@ -494,7 +565,10 @@ function checkScene(root, facts, at, err, file, range) {
               else {
                 const bad = layer.ids.findIndex((id) => !isWidgetID(id));
                 if (bad >= 0) err(`${label}.ids[${bad}] must be a widget id: letters, digits, dots and hyphens.`);
-                else if (new Set(layer.ids).size !== layer.ids.length) err(`${label}.ids lists a widget twice.`);
+                else {
+                  const twice = layer.ids.find((id, k) => layer.ids.indexOf(id) !== k);
+                  if (twice !== undefined) err(`${label}.ids: ${twice} is listed twice.`);
+                }
               }
             }
             break;
@@ -505,14 +579,584 @@ function checkScene(root, facts, at, err, file, range) {
             if (typeof layer.text !== "string") err(`${label}.text is needed for a text layer.`);
             else if (!layer.text.trim() || [...layer.text].length > L.text) err(`${label}.text must be 1 to 280 characters.`);
             break;
+          case "plugin":
+            // A plugin's widget, drawn by Atelier into a picture; the plugin's code never runs in the saver.
+            if (!isReverseDNS(layer.plugin)) err(`${label}.plugin must be a plugin's reverse-DNS id.`);
+            if (!isWidgetID(layer.view)) err(`${label}.view must be the id of one of the plugin's widgets: letters, digits, dots and hyphens.`);
+            break;
         }
       });
     }
   }
-  if (root.accent !== undefined && !(typeof root.accent === "string" && COLOR.test(root.accent))) err("\"accent\" must be a colour like \"#FF8A3D\".");
+  if (root.accent !== undefined && !isColor(root.accent)) err("\"accent\" must be a colour like \"#FF8A3D\".");
   range(root.dim, ...L.dim, "dim");
   range(root.fadeIn, ...L.fadeIn, "fadeIn");
   flag(root.burnInShift, "burnInShift");
+}
+
+// --- Rule packs ---------------------------------------------------------------------------
+//
+// Automations rules in the same JSON as Atelier's own list (AutomationRules.swift, AutomationJSON):
+// closed lists of triggers and actions, every key known. A pack's rules arrive turned off.
+
+export const RULE_LIMITS = { packRules: 20, triggers: 8, actions: 12, text: 200, name: 60, token: 155, ssidBytes: 32 };
+export const RULE_TRIGGERS = ["app", "display", "power", "lowPower", "wifi", "time", "screen", "appearance"];
+export const RULE_ACTIONS = ["look", "dockProfile", "workspace", "liveWallpaper", "pauseLiveWallpaper", "screenSaverScene",
+  "audioOutput", "eq", "typingSounds", "xdrBoost", "shortcut", "notify"];
+export const EQ_PRESETS = ["flat", "bassBoost", "bassCut", "trebleBoost", "vocal", "spokenWord", "loudness", "electronic", "acoustic",
+  "classical", "rock", "lateNight"];
+const RULE_KEYS = ["name", "when", "match", "do", "undo"];
+const RULE_LOCAL_KEYS = ["id", "enabled", "pack"];
+const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+const RULE_STATES = {
+  app: ["front", "running", "notRunning"], display: ["connected", "disconnected"], power: ["battery", "adapter"],
+  toggle: ["on", "off"], wifi: ["joined", "left"], screen: ["locked", "unlocked"], appearance: ["dark", "light"],
+};
+// Swift's whitespacesAndNewlines, and Int(text): digits with an optional sign.
+const trimText = (t) => t.replace(/^[\s\u0085]+|[\s\u0085]+$/gu, "");
+const integerText = (t) => (/^[+-]?\d+$/.test(t) ? Number(t) : null);
+const isToken = (t) => t.length > 0 && t.length <= RULE_LIMITS.token && /^[A-Za-z0-9._-]+$/.test(t);
+
+/** "09:00" as minutes; hours 0 to 24 ("24:00" ends the day). Null when it is not a time. */
+export function ruleMinutes(text) {
+  const parts = text.split(":");
+  if (parts.length !== 2 || [...parts[0]].length > 2 || [...parts[1]].length !== 2) return null;
+  const h = integerText(parts[0]), m = integerText(parts[1]);
+  if (h === null || m === null || h < 0 || h > 24 || m < 0 || m >= 60 || h * 60 + m > 1440) return null;
+  return h * 60 + m;
+}
+
+function checkRules(root, err) {
+  const list = root.rules;
+  if (!Array.isArray(list) || !list.length) return err("\"rules\" must be a list of one or more rules.");
+  if (list.length > RULE_LIMITS.packRules) err(`The pack has ${list.length} rules; the limit is ${RULE_LIMITS.packRules}.`);
+  list.slice(0, RULE_LIMITS.packRules).forEach((rule, i) => checkRule(rule, `rules[${i}]`, err));
+}
+
+/** One rule, as AutomationJSON.rule reads a pack's (never the keys Atelier keeps for its own list). */
+export function checkRule(rule, label, err) {
+  const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+  if (!isObj(rule)) return err(`${label} must be an object.`);
+  for (const key of Object.keys(rule).sort()) {
+    if (RULE_KEYS.includes(key) || key.startsWith("x-")) continue;
+    err(RULE_LOCAL_KEYS.includes(key) ? `${label}: "${key}" is set by Atelier, not by a pack.` : `${label}: unknown key "${key}".`);
+  }
+  const name = trimText(typeof rule.name === "string" ? rule.name : "");
+  if (!name || [...name].length > RULE_LIMITS.name) err(`${label} needs a "name" of 1 to ${RULE_LIMITS.name} characters.`);
+  if (rule.match !== undefined && !["all", "any"].includes(rule.match)) err(`${label}.match must be "all" or "any".`);
+  if (rule.undo !== undefined && typeof rule.undo !== "boolean") err(`${label}.undo must be true or false.`);
+  for (const [key, what, limit, each] of [["when", "triggers", RULE_LIMITS.triggers, ruleTrigger], ["do", "actions", RULE_LIMITS.actions, ruleAction]]) {
+    const items = rule[key];
+    if (!Array.isArray(items) || !items.length) { err(`${label} needs "${key}": a list of one or more ${what}.`); continue; }
+    if (items.length > limit) err(`${label} has ${items.length} ${what}; the limit is ${limit}.`);
+    items.forEach((item, j) => each(item, `${label}.${key}[${j}]`, err));
+  }
+}
+
+function ruleFields(root, label, err) {
+  const keys = (allowed) => {
+    for (const key of Object.keys(root).sort()) if (key !== "type" && !allowed.includes(key) && !key.startsWith("x-")) err(`${label}: unknown key "${key}".`);
+  };
+  const text = (key, required = true) => {
+    if (!Object.hasOwn(root, key)) { if (required) err(`${label} needs "${key}".`); return required ? null : ""; }
+    if (typeof root[key] !== "string") { err(`${label}.${key} must be text.`); return null; }
+    const trimmed = trimText(root[key]);
+    if (required && !trimmed) { err(`${label}.${key} must not be empty.`); return null; }
+    if ([...trimmed].length > RULE_LIMITS.text) { err(`${label}.${key} is longer than ${RULE_LIMITS.text} characters.`); return null; }
+    return trimmed;
+  };
+  const choice = (key, options) => {
+    if (!options.includes(root[key])) err(`${label}.${key} must be one of ${options.map((o) => `"${o}"`).join(", ")}.`);
+  };
+  return { keys, text, choice };
+}
+
+function ruleTrigger(value, label, err) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || typeof value.type !== "string") {
+    return err(`${label} needs a "type": one of ${RULE_TRIGGERS.join(", ")}.`);
+  }
+  const { keys, text, choice } = ruleFields(value, label, err);
+  switch (value.type) {
+    case "app": {
+      keys(["app", "state"]);
+      const id = text("app");
+      if (id !== null && !isBundleID(id)) err(`${label}.app must be a bundle identifier, like us.zoom.xos.`);
+      choice("state", RULE_STATES.app);
+      break;
+    }
+    case "display": keys(["display", "state"]); text("display", false); choice("state", RULE_STATES.display); break;
+    case "power": keys(["state"]); choice("state", RULE_STATES.power); break;
+    case "lowPower": keys(["state"]); choice("state", RULE_STATES.toggle); break;
+    case "wifi": {
+      keys(["ssid", "state"]);
+      const ssid = text("ssid");
+      if (ssid !== null && Buffer.byteLength(ssid, "utf8") > RULE_LIMITS.ssidBytes) err(`${label}.ssid is longer than a Wi-Fi name can be (32 bytes).`);
+      choice("state", RULE_STATES.wifi);
+      break;
+    }
+    case "time": {
+      keys(["from", "to", "days"]);
+      if (!(typeof value.from === "string" && ruleMinutes(value.from) !== null)) err(`${label}.from must be a time like "09:00".`);
+      if (!(typeof value.to === "string" && ruleMinutes(value.to) !== null)) err(`${label}.to must be a time like "17:30".`);
+      if (value.days !== undefined) {
+        if (!Array.isArray(value.days)) err(`${label}.days must be a list.`);
+        else for (const day of value.days) {
+          if (!(typeof day === "string" && WEEKDAYS.includes(day.toLowerCase()))) err(`${label}.days must list days as ${WEEKDAYS.join(", ")}.`);
+        }
+      }
+      break;
+    }
+    case "screen": keys(["state"]); choice("state", RULE_STATES.screen); break;
+    case "appearance": keys(["state"]); choice("state", RULE_STATES.appearance); break;
+    case "focus":
+      err(`${label}: Focus is not a trigger. macOS tells apps only whether a Focus is on, and only with an entitlement Atelier cannot have. Use a Shortcuts automation that opens atelier://automation?run=<rule name> instead.`);
+      break;
+    default:
+      err(`${label}.type "${value.type}" is not a trigger. Triggers: ${RULE_TRIGGERS.join(", ")}.`);
+  }
+}
+
+function ruleAction(value, label, err) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || typeof value.type !== "string") {
+    return err(`${label} needs a "type": one of ${RULE_ACTIONS.join(", ")}.`);
+  }
+  const { keys, text, choice } = ruleFields(value, label, err);
+  // Looks, scenes and shaders are named by identifiers: letters, digits, dots, hyphens and underscores.
+  const token = (key) => {
+    const t = text(key);
+    if (t !== null && !isToken(t)) err(`${label}.${key} must be an identifier (letters, digits, . - _).`);
+  };
+  switch (value.type) {
+    case "look": keys(["look"]); token("look"); break;
+    case "dockProfile": keys(["profile"]); text("profile"); break;
+    case "workspace": keys(["workspace"]); text("workspace"); break;
+    case "liveWallpaper": keys(["shader"]); token("shader"); break;
+    case "pauseLiveWallpaper": keys([]); break;
+    case "screenSaverScene": keys(["scene"]); token("scene"); break;
+    case "audioOutput": keys(["device"]); text("device"); break;
+    case "eq":
+      keys(["preset"]);
+      if (value.preset !== "off" && !EQ_PRESETS.includes(value.preset)) err(`${label}.preset must be one of ${[...EQ_PRESETS, "off"].join(", ")}.`);
+      break;
+    case "typingSounds": case "xdrBoost": keys(["state"]); choice("state", RULE_STATES.toggle); break;
+    case "shortcut": keys(["name"]); text("name"); break;
+    case "notify": keys(["title", "body"]); text("title"); text("body", false); break;
+    default:
+      err(`${label}.type "${value.type}" is not an action. Actions: ${RULE_ACTIONS.join(", ")}.`);
+  }
+}
+
+// --- Shader code: the restricted Metal of format 2 shader packs ---------------------------
+//
+// A faithful port of ShaderCode.swift: the same tokenizer, the same whitelist, the same limits,
+// the same messages. It runs on the file's UTF-8 bytes. Nothing here compiles or runs the code.
+
+export const SHADER_CODE = {
+  maxBytes: 32 * 1024, maxFunctions: 16, maxLoopTurns: 64, maxNestedTurns: 4096, maxWork: 16_384, maxTokens: 12_000, maxDepth: 32,
+};
+const SC = (() => {
+  const types = new Set(["bool", "int", "uint", "float", "half"]);
+  for (const base of ["bool", "int", "uint", "float", "half"]) for (let n = 2; n <= 4; n++) types.add(`${base}${n}`);
+  for (const base of ["float", "half"]) for (let c = 2; c <= 4; c++) for (let r = 2; r <= 4; r++) types.add(`${base}${c}x${r}`);
+  const functions = new Set(["abs", "acos", "acosh", "asin", "asinh", "atan", "atan2", "atanh", "ceil", "clamp", "cos", "cosh", "cospi",
+    "cross", "degrees", "distance", "dot", "exp", "exp2", "exp10", "faceforward", "floor", "fma", "fmax", "fmin",
+    "fmod", "fract", "length", "length_squared", "log", "log2", "log10", "max", "min", "mix", "normalize", "pow",
+    "powr", "radians", "reflect", "refract", "round", "rsqrt", "saturate", "sign", "sin", "sinh", "sinpi",
+    "smoothstep", "sqrt", "step", "tan", "tanh", "tanpi", "trunc", "select", "all", "any", "isnan", "isinf",
+    "isfinite", "transpose", "determinant", "copysign", "fdim", "ldexp", "distance_squared"]);
+  const helpers = new Set(["hash21", "hash22", "noise", "fbm", "luma", "sampleWallpaper"]);
+  const constants = new Set(["M_PI_F", "M_PI_2_F", "M_PI_4_F", "M_E_F", "M_SQRT2_F", "M_1_PI_F", "M_2_PI_F", "MAXFLOAT"]);
+  const keywords = new Set(["if", "else", "for", "return", "break", "continue", "const", "true", "false"]);
+  const uniforms = new Set(["resolution", "pointer", "time", "day", "daylight", "golden", "presence", "opacity", "seed", "contrast", "grain",
+    "scale", "dim", "paletteMix", "palette"]);
+  const reserved = new Set(["u", "wallpaper", "in", "Uniforms", "Varying", "shade", "atelierPackFragment", "livingVertex", "metal", "main"]);
+  const refused = new Map();
+  const refuse = (words, why) => words.forEach((w) => refused.set(w, why));
+  refuse(["while", "do", "goto", "switch", "case", "default"], "only for loops with constant bounds are allowed");
+  refuse(["device", "threadgroup", "threadgroup_imageblock", "thread", "constant", "ray_data", "object_data"],
+    "address spaces are not allowed: a pack reads nothing but its uniforms");
+  refuse(["kernel", "vertex", "fragment", "visible", "stitchable", "intersection", "mesh", "object"],
+    "Atelier writes the entry point; write only shade and its helpers");
+  refuse(["texture1d", "texture2d", "texture3d", "texturecube", "texture2d_array", "texture2d_ms", "depth2d", "sampler",
+    "buffer", "array", "array_ref", "atomic", "atomic_int", "atomic_uint", "atomic_bool", "atomic_float",
+    "imageblock", "visible_function_table", "intersection_function_table", "acceleration_structure",
+    "patch_control_point", "simdgroup_matrix"],
+  "buffers, textures and samplers are not allowed; read the wallpaper with sampleWallpaper(wallpaper, uv)");
+  refuse(["asm", "__asm", "__asm__", "extern", "volatile", "register", "static", "inline", "constexpr", "template",
+    "typename", "using", "namespace", "struct", "class", "union", "enum", "typedef", "operator", "new", "delete",
+    "sizeof", "alignas", "alignof", "static_cast", "reinterpret_cast", "const_cast", "dynamic_cast", "as_type",
+    "this", "friend", "virtual", "mutable", "auto", "decltype", "nullptr", "try", "catch", "throw",
+    "threadgroup_barrier", "simdgroup_barrier", "discard_fragment", "packed_float3"],
+  "this part of the language is not allowed in shader packs");
+  const symbols = ["<<=", ">>=", "==", "!=", "<=", ">=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "%=", "|=", "^=", "&=",
+    "<<", ">>", "->", "::", "(", ")", "{", "}", "[", "]", ";", ",", ".", "+", "-", "*", "/", "%", "=", "<", ">",
+    "!", "?", ":", "^", "|", "~", "&"].map((s) => [s, Buffer.from(s, "latin1")]);
+  const signature = ["(", "float2", "uv", ",", "constant", "Uniforms", "&", "u", ",", "texture2d", "<", "float", ">", "wallpaper", ")"];
+  return { types, functions, helpers, constants, keywords, uniforms, reserved, refused, symbols, signature };
+})();
+
+/** An integer literal's value (decimal or 0x hex, an optional u), or null: Int(text) in Swift. */
+function scInteger(text) {
+  let body = text;
+  if (body.endsWith("u") || body.endsWith("U")) body = body.slice(0, -1);
+  let big = null;
+  if (body.startsWith("0x") || body.startsWith("0X")) { if (/^[0-9A-Fa-f]+$/.test(body.slice(2))) big = BigInt("0x" + body.slice(2)); }
+  else if (/^\d+$/.test(body)) big = BigInt(body);
+  return big !== null && big <= 0x7fffffffffffffffn ? Number(big) : null;
+}
+
+function scTokenize(bytes) {
+  const tokens = [], n = bytes.length;
+  let i = 0, line = 1;
+  const isNameStart = (b) => (b >= 65 && b <= 90) || (b >= 97 && b <= 122) || b === 95;
+  const isDigit = (b) => b >= 48 && b <= 57;
+  const isName = (b) => isNameStart(b) || isDigit(b);
+  const fail = (at, message) => ({ problem: { line: at, message } });
+  const chr = (b) => String.fromCharCode(b);
+  while (i < n) {
+    const b = bytes[i];
+    if (b === 10) { line++; i++; continue; }
+    if (b === 32 || b === 9 || b === 13) { i++; continue; }
+    if (!(b >= 32 && b < 127)) return fail(line, "only plain ASCII text is allowed");
+    if (b === 47 && i + 1 < n && bytes[i + 1] === 47) { while (i < n && bytes[i] !== 10) i++; continue; }
+    if (b === 47 && i + 1 < n && bytes[i + 1] === 42) {
+      const start = line;
+      let closed = false;
+      i += 2;
+      while (i + 1 < n) {
+        if (bytes[i] === 10) line++;
+        if (bytes[i] === 42 && bytes[i + 1] === 47) { closed = true; i += 2; break; }
+        i++;
+      }
+      if (!closed) return fail(start, "a /* comment is never closed");
+      continue;
+    }
+    if (b === 35) return fail(line, "# is not allowed: no #include, #define or #pragma");
+    if (b === 92) return fail(line, "\\ is not allowed");
+    if (b === 34 || b === 39) return fail(line, "strings and characters are not allowed");
+    if (b === 64 || b === 36 || b === 96) return fail(line, `"${chr(b)}" is not allowed`);
+    if (isNameStart(b)) {
+      let j = i;
+      while (j < n && isName(bytes[j])) j++;
+      tokens.push({ kind: "name", text: bytes.toString("latin1", i, j), line });
+      i = j;
+      continue;
+    }
+    if (isDigit(b) || (b === 46 && i + 1 < n && isDigit(bytes[i + 1]))) {
+      let j = i;
+      if (b === 48 && j + 1 < n && (bytes[j + 1] === 120 || bytes[j + 1] === 88)) {
+        j += 2;
+        const digits = j;
+        while (j < n && (isDigit(bytes[j]) || ((bytes[j] | 0x20) >= 97 && (bytes[j] | 0x20) <= 102))) j++;
+        if (j === digits) return fail(line, "a hex number needs digits");
+        if (j < n && (bytes[j] | 0x20) === 117) j++;
+      } else {
+        while (j < n && isDigit(bytes[j])) j++;
+        if (j < n && bytes[j] === 46) { j++; while (j < n && isDigit(bytes[j])) j++; }
+        if (j < n && (bytes[j] | 0x20) === 101) {
+          let k = j + 1;
+          if (k < n && (bytes[k] === 43 || bytes[k] === 45)) k++;
+          if (!(k < n && isDigit(bytes[k]))) return fail(line, "a number's exponent needs digits");
+          j = k;
+          while (j < n && isDigit(bytes[j])) j++;
+        }
+        if (j < n && [102, 70, 104, 72, 117, 85].includes(bytes[j])) j++;
+      }
+      if (j < n && (isName(bytes[j]) || bytes[j] === 46)) return fail(line, `"${bytes.toString("latin1", i, j + 1)}" is not a number`);
+      tokens.push({ kind: "number", text: bytes.toString("latin1", i, j), line });
+      i = j;
+      continue;
+    }
+    const symbol = SC.symbols.find(([, u]) => i + u.length <= n && u.every((c, k) => bytes[i + k] === c));
+    if (!symbol) return fail(line, `"${chr(b)}" is not allowed`);
+    tokens.push({ kind: "symbol", text: symbol[0], line });
+    i += symbol[1].length;
+    if (tokens.length > SHADER_CODE.maxTokens) return fail(line, `the shader is longer than ${SHADER_CODE.maxTokens} words and symbols`);
+  }
+  return { tokens };
+}
+
+/**
+ * Checks a shader pack's fragment code. Null when it passes, or its problems (at most ten), each
+ * { line, message, description } where description reads "line 3: …" as Atelier shows it.
+ */
+export function validateShaderCode(source) {
+  const L = SHADER_CODE;
+  const problems = [];
+  const fail = (line, message) => { if (problems.length < 10) problems.push({ line, message }); };
+  const done = () => (problems.length ? problems.slice(0, 10).map((p) => ({ ...p, description: p.line > 0 ? `line ${p.line}: ${p.message}` : p.message })) : null);
+  const bytes = Buffer.from(source, "utf8");
+  if (bytes.length > L.maxBytes) { fail(0, `the shader is larger than ${L.maxBytes / 1024} KB`); return done(); }
+  const lexed = scTokenize(bytes);
+  if (lexed.problem) { problems.push(lexed.problem); return done(); }
+  const tokens = lexed.tokens;
+  const defined = new Set(), work = new Map();
+  let index = 0, sawShade = false;
+  const current = () => tokens[index];
+  const lineNow = () => current()?.line ?? tokens.at(-1)?.line ?? 0;
+  const isNewName = (t) => !t.startsWith("__") && !t.startsWith("metal_") && !SC.reserved.has(t) && !SC.types.has(t)
+    && !SC.functions.has(t) && !SC.helpers.has(t) && !SC.constants.has(t) && !SC.keywords.has(t)
+    && !SC.refused.has(t) && t !== "void" && t.length <= 64;
+  const isSwizzle = (t) => t.length >= 1 && t.length <= 4 && (/^[xyzw]+$/.test(t) || /^[rgba]+$/.test(t));
+  const matching = (start) => {
+    const open = tokens[start].text, close = open === "{" ? "}" : open === "(" ? ")" : "]";
+    let depth = 0;
+    for (let i = start; i < tokens.length; i++) {
+      if (tokens[i].kind !== "symbol") continue;
+      if (tokens[i].text === open) depth++;
+      if (tokens[i].text === close) { depth--; if (depth === 0) return i; }
+    }
+    return null;
+  };
+  const expect = (text) => {
+    const t = current();
+    if (!t || t.text !== text || t.kind === "number") { fail(lineNow(), `expected "${text}"${t ? `, found "${t.text}"` : " at the end"}`); return false; }
+    index++;
+    return true;
+  };
+  const assigns = (i, start, end) => {
+    const after = i + 1 < end ? tokens[i + 1].text : "", before = i > start ? tokens[i - 1].text : "";
+    return ["=", "+=", "-=", "*=", "/=", "%=", "|=", "^=", "<<=", ">>=", "++", "--"].includes(after) || before === "++" || before === "--";
+  };
+
+  // for (int i = A; i < B; i++) { … } with literal bounds, at most 64 turns.
+  const forLoop = (start, end, scope) => {
+    const line = tokens[start].line;
+    const bad = (why) => { fail(line, `a for loop must read for (int i = 0; i < N; i++) { … } with N at most ${L.maxLoopTurns}: ${why}`); return null; };
+    if (!(start + 1 < end && tokens[start + 1].text === "(")) return bad("its header is incomplete");
+    const close = matching(start + 1);
+    if (close === null || close >= end) return bad("its header is incomplete");
+    const head = tokens.slice(start + 2, close);
+    if (!(head.length >= 9 && ["int", "uint"].includes(head[0].text) && head[1].kind === "name" && isNewName(head[1].text) && head[2].text === "=")) {
+      return bad("it must declare its counter");
+    }
+    const variable = head[1].text;
+    let k = 3;
+    const literal = () => {
+      let sign = 1;
+      if (k < head.length && head[k].text === "-") { sign = -1; k++; }
+      if (!(k < head.length && head[k].kind === "number")) return null;
+      const value = scInteger(head[k].text);
+      if (value === null) return null;
+      k++;
+      return sign * value;
+    };
+    const from = literal();
+    if (from === null || !(k < head.length && head[k].text === ";")) return bad("its start must be a whole number");
+    k++;
+    if (!(k + 1 < head.length && head[k].text === variable && ["<", "<=", ">", ">="].includes(head[k + 1].text))) {
+      return bad("it must compare its counter with a number");
+    }
+    const compare = head[k + 1].text;
+    k += 2;
+    const to = literal();
+    if (to === null || !(k < head.length && head[k].text === ";")) return bad("its end must be a whole number");
+    k++;
+    const step = head.slice(k).map((t) => t.text);
+    const is = (list) => step.length === list.length && list.every((s, x) => step[x] === s);
+    let by;
+    if (is([variable, "++"]) || is(["++", variable])) by = 1;
+    else if (is([variable, "--"]) || is(["--", variable])) by = -1;
+    else {
+      const amount = step.length === 3 ? scInteger(step[2]) : null;
+      if (step.length === 3 && step[0] === variable && (step[1] === "+=" || step[1] === "-=") && amount !== null && amount > 0) by = step[1] === "+=" ? amount : -amount;
+      else return bad("its step must be i++, i--, i += N or i -= N");
+    }
+    let turns;
+    switch (compare) {
+      case "<": turns = by > 0 && to > from ? Math.trunc((to - from + by - 1) / by) : 0; break;
+      case "<=": turns = by > 0 && to >= from ? Math.trunc((to - from) / by) + 1 : 0; break;
+      case ">": turns = by < 0 && from > to ? Math.trunc((from - to - by - 1) / -by) : 0; break;
+      default: turns = by < 0 && from >= to ? Math.trunc((from - to) / -by) + 1 : 0;
+    }
+    if ((compare === "<" || compare === "<=") && by < 0) return bad("it would never end");
+    if ((compare === ">" || compare === ">=") && by > 0) return bad("it would never end");
+    if (turns > L.maxLoopTurns) return bad(`it turns ${turns} times`);
+    if (!(close + 1 < end && tokens[close + 1].text === "{")) return bad("its body must be in braces");
+    const bodyEnd = matching(close + 1);
+    if (bodyEnd === null || bodyEnd >= end) return bad("its body must be in braces");
+    scope.add(variable);
+    return { turns: Math.max(turns, 1), variable, bodyStart: close + 1, bodyEnd };
+  };
+
+  // A function's body; returns its loop turns per call, helpers included.
+  const body = (start, end, fn, scope) => {
+    const loops = [];
+    const enclosing = () => loops.reduce((product, l) => product * l.turns, 1);
+    let cost = 0, depth = 0, declaring = false, declaringDepth = 0, i = start;
+    while (i < end && !problems.length) {
+      while (loops.length && i > loops.at(-1).end) loops.pop();
+      const token = tokens[i];
+      const previous = i > start ? tokens[i - 1] : undefined;
+      const next = i + 1 < end ? tokens[i + 1] : undefined;
+      if (token.kind === "symbol") {
+        switch (token.text) {
+          case "(": case "{":
+            depth++;
+            if (depth > L.maxDepth) { fail(token.line, `nested more than ${L.maxDepth} deep`); return cost; }
+            break;
+          case ")": case "}": depth--; break;
+          case ";": if (declaring && depth === declaringDepth) declaring = false; break;
+          case ",":
+            if (declaring && depth === declaringDepth && next && next.kind === "name") {
+              if (!isNewName(next.text)) { fail(next.line, `"${next.text}" cannot be used as a name`); return cost; }
+              scope.add(next.text);
+              i += 2;
+              continue;
+            }
+            break;
+          case "&": case "&=": fail(token.line, "no references or addresses: & is not allowed (&& is)"); return cost;
+          case "->": case "::": fail(token.line, `"${token.text}" is not allowed`); return cost;
+          case "*": {
+            const operand = previous
+              ? previous.kind === "number" || (previous.kind === "name" && !SC.keywords.has(previous.text)) || previous.text === ")" || previous.text === "]"
+              : false;
+            if (!operand) { fail(token.line, "no pointers: * only multiplies"); return cost; }
+            break;
+          }
+          case "[": {
+            // Only u.palette[0…3].
+            const value = next && next.kind === "number" ? scInteger(next.text) : null;
+            if (!(i >= 3 && tokens[i - 1].text === "palette" && tokens[i - 2].text === "." && tokens[i - 3].text === "u"
+                  && value !== null && value >= 0 && value <= 3 && i + 2 < end && tokens[i + 2].text === "]")) {
+              fail(token.line, "no arrays: [ ] only reads u.palette[0] to u.palette[3]");
+              return cost;
+            }
+            i += 3;
+            continue;
+          }
+          case "]": fail(token.line, "no arrays"); return cost;
+        }
+      } else if (token.kind === "name") {
+        const text = token.text;
+        if (previous?.text === ".") {
+          // A member: a uniform's field, or a swizzle.
+          if (i >= 2 && tokens[i - 2].text === "u" && tokens[i - 2].kind === "name" && (i < 3 || tokens[i - 3].text !== ".")) {
+            if (!SC.uniforms.has(text)) { fail(token.line, `Uniforms has no field "${text}"`); return cost; }
+            if (text === "palette" && next?.text !== "[") { fail(token.line, "read the palette one colour at a time, like u.palette[0]"); return cost; }
+          } else if (!isSwizzle(text)) {
+            fail(token.line, `".${text}" is not a swizzle like .xy or .rgb`);
+            return cost;
+          }
+        } else {
+          if (SC.refused.has(text)) { fail(token.line, `"${text}": ${SC.refused.get(text)}`); return cost; }
+          if (text.startsWith("__")) { fail(token.line, "names starting with __ are not allowed"); return cost; }
+          if (text === "for") {
+            const loop = forLoop(i, end, scope);
+            if (!loop) return cost;
+            const turns = loops.reduce((product, l) => product * l.turns, loop.turns);
+            if (turns > L.maxNestedTurns) { fail(token.line, `nested loops may turn at most ${L.maxNestedTurns} times in all`); return cost; }
+            loops.push({ end: loop.bodyEnd, turns: loop.turns, variable: loop.variable });
+            cost += turns;
+            i = loop.bodyStart;
+            continue;
+          }
+          if (SC.keywords.has(text) || SC.constants.has(text)) {
+            // A keyword or one of Metal's constants.
+          } else if (SC.types.has(text)) {
+            if (next?.text === "*" || next?.text === "&") { fail(token.line, "no pointers or references"); return cost; }
+            if (next && next.kind === "name") {
+              // A declaration: `float3 a = …, b;`
+              if (!isNewName(next.text)) { fail(next.line, `"${next.text}" cannot be used as a name`); return cost; }
+              if (i + 2 < end && tokens[i + 2].text === "[") { fail(next.line, "no arrays"); return cost; }
+              if (i + 2 < end && tokens[i + 2].text === "(") { fail(next.line, "functions cannot be written inside other functions"); return cost; }
+              scope.add(next.text);
+              declaring = true;
+              declaringDepth = depth;
+              i += 2;
+              continue;
+            }
+          } else if (text === "u") {
+            if (next?.text !== ".") { fail(token.line, "u is read through its fields, like u.time"); return cost; }
+          } else if (text === "wallpaper") {
+            if (!(i >= 2 && tokens[i - 1].text === "(" && tokens[i - 2].text === "sampleWallpaper")) {
+              fail(token.line, "the wallpaper is read only with sampleWallpaper(wallpaper, uv)");
+              return cost;
+            }
+          } else if (text === fn) {
+            fail(token.line, `${text} calls itself: recursion is not allowed`);
+            return cost;
+          } else if (SC.functions.has(text) || SC.helpers.has(text) || defined.has(text)) {
+            if (next?.text !== "(") { fail(token.line, `${text} is a function: call it`); return cost; }
+            if (work.has(text)) cost += enclosing() * work.get(text);
+            else if (text === "fbm") cost += enclosing() * 8;
+          } else if (scope.has(text)) {
+            if (loops.some((l) => l.variable === text) && assigns(i, start, end)) { fail(token.line, `the loop counter ${text} may not change inside its loop`); return cost; }
+          } else {
+            fail(token.line, `unknown name "${text}"`);
+            return cost;
+          }
+        }
+      }
+      i++;
+    }
+    return Math.max(cost, 1);
+  };
+
+  const fnDecl = () => {
+    const returnType = current();
+    if (!returnType || returnType.kind !== "name") return fail(lineNow(), "expected a function");
+    if (SC.refused.has(returnType.text)) return fail(returnType.line, `"${returnType.text}": ${SC.refused.get(returnType.text)}`);
+    if (!SC.types.has(returnType.text) && returnType.text !== "void") {
+      return fail(returnType.line, `only functions may be written here, starting with their return type (found "${returnType.text}")`);
+    }
+    index++;
+    const name = current();
+    if (!name || name.kind !== "name") return fail(lineNow(), "expected the function's name");
+    index++;
+    const scope = new Set();
+    if (name.text === "shade") {
+      const sig = SC.signature;
+      if (!(returnType.text === "float4" && tokens.length >= index + sig.length && sig.every((s, k) => tokens[index + k].text === s))) {
+        return fail(name.line, "shade must be declared exactly as float4 shade(float2 uv, constant Uniforms &u, texture2d<float> wallpaper)");
+      }
+      index += sig.length;
+      scope.add("uv");
+      sawShade = true;
+    } else {
+      if (!isNewName(name.text) || defined.has(name.text)) return fail(name.line, `"${name.text}" cannot be used as a function name`);
+      if (!expect("(")) return;
+      if (current()?.text !== ")") {
+        while (true) {
+          if (current()?.text === "const") index++;
+          const word = current()?.text;
+          if (word !== undefined && SC.refused.has(word)) return fail(lineNow(), `"${word}": ${SC.refused.get(word)}`);
+          const type = current();
+          if (!type || !SC.types.has(type.text)) return fail(lineNow(), "a parameter is a number, vector or matrix type followed by its name");
+          index++;
+          if (current()?.text === "&" || current()?.text === "*") return fail(lineNow(), "no pointers or references");
+          const param = current();
+          if (!param || param.kind !== "name" || !isNewName(param.text)) return fail(lineNow(), "expected the parameter's name");
+          index++;
+          scope.add(param.text);
+          if (current()?.text === ",") { index++; continue; }
+          break;
+        }
+      }
+      if (!expect(")")) return;
+    }
+    if (current()?.text !== "{") return fail(lineNow(), "expected the function's body in braces");
+    const end = matching(index);
+    if (end === null) return fail(lineNow(), "a { is never closed");
+    const cost = body(index + 1, end, name.text, scope);
+    if (!problems.length && cost > L.maxWork) {
+      fail(name.line, `${name.text} does too much for one pixel: ${cost} loop turns with its helpers; the limit is ${L.maxWork}`);
+    }
+    index = end + 1;
+    defined.add(name.text);
+    work.set(name.text, cost);
+  };
+
+  if (!tokens.length) { fail(0, "the file is empty: write a shade function"); return done(); }
+  let count = 0;
+  while (current() && !problems.length) {
+    if (sawShade) { fail(lineNow(), "shade must be the last function in the file"); return done(); }
+    count++;
+    if (count > L.maxFunctions) { fail(lineNow(), `at most ${L.maxFunctions} functions, shade included`); return done(); }
+    fnDecl();
+  }
+  if (!problems.length && !sawShade) fail(0, "the file needs float4 shade(float2 uv, constant Uniforms &u, texture2d<float> wallpaper)");
+  return done();
 }
 
 export const isPackKind = (kind) => Object.hasOwn(PACKS, kind);

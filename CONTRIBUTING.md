@@ -5,7 +5,7 @@ theme or a pack into the catalog. The formats themselves are documented in Ateli
 [PLUGINS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PLUGINS.md),
 [THEMES.md](https://github.com/kaizensx/Atelier/blob/main/docs/THEMES.md) and
 [PACKS.md](https://github.com/kaizensx/Atelier/blob/main/docs/PACKS.md) (icon packs, sound packs,
-shader packs, layout packs, effect packs and Looks), and for screen saver scenes [SCREENSAVER.md](https://github.com/kaizensx/Atelier/blob/main/docs/SCREENSAVER.md).
+shader packs, layout packs, effect packs, Looks and rule packs), and for screen saver scenes [SCREENSAVER.md](https://github.com/kaizensx/Atelier/blob/main/docs/SCREENSAVER.md).
 
 ## 1. Make it and try it
 
@@ -64,7 +64,7 @@ mods/io.github.you.focus-ring/
 | `id`, `name`, `version` | Exactly as in the package's own `manifest.json`, `atelier-theme.json` or pack manifest. |
 | `author` | Shown on the card. A name, or `{ "name", "key", "url" }` to sign your packages and link your page (see *Sign your package*). |
 | `github` | **Your** GitHub handle. Only you (or a maintainer) can update the mod later. |
-| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look`, `scene` (all in `mods/`); `native` (in `native/`). |
+| `kind` | `plugin`, `theme`, or a pack: `icons`, `sounds`, `shader`, `layouts`, `effects`, `look`, `scene`, `rules` (all in `mods/`); `native` (in `native/`). |
 | `summary` | One or two sentences, up to 400 characters. |
 | `description` | Markdown for the mod page. Or write `description.md` beside `mod.json`. |
 | `screenshots` | 1 to 6 PNG or JPEG files in `screenshots/`, at least 640 px wide, up to 1.5 MB each. 16:10 fills the card. |
@@ -99,22 +99,29 @@ it is in everyone's Mods chapter.
 
 * `mod.json` follows the schema, and its id, name and version match the package.
 * **Permissions tell the truth.** The script is scanned for `atelier.http`, `atelier.notify`,
-  `atelier.openURL`, `atelier.theme`, `atelier.menuBarItem`, `atelier.liveActivity`, `atelier.scenes`
-  and `atelier.panel`. Using one without asking for its permission fails; asking
-  for one the script never uses fails too. Reaching `atelier` indirectly (`atelier["http"]`, or
+  `atelier.openURL`, `atelier.theme`, `atelier.menuBarItem`, `atelier.liveActivity`, `atelier.scenes`,
+  `atelier.panel`, `atelier.windows`, `atelier.workspaces`, `atelier.hud`, `atelier.audio`, and
+  `atelier.on` with a window event (`windows`) or a sound event (`audio`). Using one without asking
+  for its permission fails; asking for one the script never uses fails too. `windowTitles` needs
+  `windows`, an `onEvent:` activation needs its event's permission, and at most 8 commands may have
+  a shortcut; a shortcut without the `shortcuts` permission works in Command only, so that is a warning. Reaching `atelier` indirectly (`atelier["http"]`, or
   passing `atelier` around) cannot be followed by the scan and gets a closer human look.
 * **No binaries** outside the native tier: no executables, libraries, archives, WebAssembly or
   `#!` scripts. A plugin may hold `.js`, `.json`, `.md`, `.txt`, images, `.css` and `.woff2` (for its panels); a theme may also hold
   `.heic`, `.tiff` and sounds. No hidden files, no symbolic links.
 * **Sizes:** a plugin zips to at most 2 MB (its script at most 512 KB), a theme to 40 MB, a
-  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, scenes 40 MB, shaders 1 MB, layouts and
-  effects 256 KB.
+  native mod to 20 MB. Packs: icons 60 MB, sounds 20 MB, Looks 80 MB, scenes 40 MB, shaders 1 MB, layouts,
+  effects and rule packs 256 KB.
 * **Packs are data only** and are checked by the same rules as Atelier (`scripts/packs.mjs`): every
   file by its own bytes (a `.wav` must really be a WAV), icons PNG, HEIC or ICNS of at most 1 MB
   and at least 256 px (600 at most), sounds CAF, M4A or WAV of at most 1 MB and 2 s (typing sounds
   1 s), shaders built from Atelier's own shaders with values in range, layout zones inside the
   screen and never thinner than 0.05, effects of 0.15 to 1.2 s whose keyframes start on the window,
-  and a Look's theme and packs inside it, each checked too.
+  and a Look's theme and packs inside it, each checked too. A format 2 shader pack's `.metal` file
+  (at most 32 KB) passes the same whitelist Atelier applies before Metal sees it: only `shade` and up to
+  fifteen helpers, only math, `for` loops with constant bounds, no pointers, arrays, buffers or
+  preprocessor. A rule pack holds 1 to 20 Automations rules made of the known triggers and actions
+  only; its rules arrive turned off.
 * Themes are checked against Atelier's theme schema.
 * At least one screenshot, present and readable.
 * **Updates:** the version goes up. The same version may never change its contents; a published

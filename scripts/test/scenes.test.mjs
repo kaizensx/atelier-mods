@@ -97,3 +97,49 @@ test("paths stay inside the scene", () => {
   assert.ok(has(check(color, { "run.sh": "#!/bin/sh\n" }), "run.sh is not a PNG"));
   assert.ok(has(check(color, {}).concat(check({ ...color, id: "net.dasantos.atelier.scene.x" })), "Atelier's own scenes"));
 });
+
+// Atelier 1.2: the live wallpaper options of a shader background, clock colours, plugin layers
+// and the Photos library. The cases mirror ScreenSaverSceneTests.swift.
+
+test("live wallpaper options on a shader background", () => {
+  assert.deepEqual(check({
+    background: { kind: "shader", shader: "fireflies", touch: true, timelapse: 12, tour: ["nebula", "com.example.drift", "desktop", "weather"],
+      every: 120, intensity: 0.7, grain: 0.1, scale: 1.2, dim: 0.2, cycle: "dusk" },
+  }), []);
+  assert.deepEqual(check({ background: { kind: "shader", shader: "nebula", timelapse: 0, every: 20, scale: 0.6, dim: 0.7 } }), []);
+  assert.deepEqual(check({ background: { kind: "shader", shader: "nebula", timelapse: 1440, every: 3600, tour: [] } }), []);
+  // What the desktop shows, and the weather, as backgrounds of their own.
+  assert.deepEqual(check({ background: { kind: "shader", shader: "desktop", touch: true } }), []);
+  assert.deepEqual(check({ background: { kind: "shader", shader: "weather", timelapse: 60 } }), []);
+  // Out of range, wrong types, wallpaper shaders in a pack's tour.
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", timelapse: 0.5 } }), "timelapse"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", timelapse: 1441 } }), "timelapse"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", every: 5 } }), "background.every"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", touch: "yes" } }), "background.touch"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", cycle: "noon" } }), "background.cycle"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", tour: ["wallpaperRain"] } }), "own wallpaper"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", tour: ["not a shader"] } }), "background.tour"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", tour: "nebula" } }), "list of shader names"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", tour: Array(41).fill("nebula") } }), "at most 40"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", intensity: 1.5 } }), "background.intensity"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", grain: -1 } }), "background.grain"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", scale: 2 } }), "background.scale"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "nebula", dim: 0.8 } }), "background.dim"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "desktop", every: 1 } }), "background.every"));
+  assert.ok(has(check({ background: { kind: "shader" } }), "must name a shader"));
+  assert.ok(has(check({ background: { kind: "shader", shader: "wallpaperDepth" } }), "own wallpaper"));
+});
+
+test("clock colours, plugin layers and the Photos library", () => {
+  assert.deepEqual(check({ ...color, layers: [{ kind: "clock", color: "accent" }, { kind: "clock", color: "white" }, { kind: "clock", color: "#FFAA00" }] }), []);
+  assert.ok(has(check({ ...color, layers: [{ kind: "clock", color: "red" }] }), "color must be accent, white or #RRGGBB"));
+  assert.deepEqual(check({ ...color, layers: [{ kind: "plugin", plugin: "com.example.pomodoro", view: "timer", position: "bottom", size: 0.3 }] }), []);
+  assert.ok(has(check({ ...color, layers: [{ kind: "plugin", plugin: "pomodoro", view: "timer" }] }), "reverse-DNS id"));
+  assert.ok(has(check({ ...color, layers: [{ kind: "plugin", plugin: "com.example.pomodoro", view: "../x" }] }), "widgets"));
+  assert.ok(has(check({ ...color, layers: [{ kind: "plugin", plugin: "com.example.pomodoro" }] }), ".view must be"));
+  assert.ok(has(check({ ...color, layers: [{ kind: "plugin", plugin: "com.example.pomodoro", view: "timer", script: "x" }] }), "unknown key \"script\""));
+  assert.deepEqual(check({ background: { kind: "photos", source: "library", interval: 20, kenBurns: false } }), []);
+  assert.ok(has(check({ background: { kind: "photos", source: "library", folder: "photos" } }), "only for the folder and bundled"));
+  assert.ok(has(check({ background: { kind: "photos", source: "camera" } }), "folder, pictures, bundled or library"));
+  assert.ok(has(check({ ...color, layers: [{ kind: "widgets", ids: ["a", "a"] }] }), "a is listed twice"));
+});

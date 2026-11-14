@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "id": "com.example.meeting-mode",
+  "name": "Meeting Mode",
+  "version": "1.0.0",
+  "author": "Atelier",
+  "description": "While Zoom or FaceTime is in front, the live wallpaper holds still and Typing Sounds go quiet. Everything comes back when the call app is no longer in front.",
+  "rules": [
+    {
+      "name": "Meeting Mode",
+      "match": "any",
+      "when": [
+        { "type": "app", "app": "us.zoom.xos", "state": "front" },
+        { "type": "app", "app": "com.apple.FaceTime", "state": "front" }
+      ],
+      "do": [
+        { "type": "pauseLiveWallpaper" },
+        { "type": "typingSounds", "state": "off" }
+      ],
+      "undo": true
+    }
+  ]
+}
