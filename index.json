@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "generated": "2026-11-13T18:51:14Z",
+  "generated": "2026-11-14T11:32:56Z",
   "catalog": "kaizensx/atelier-mods",
   "featured": [
     "com.example.pomodoro",
@@ -113,8 +113,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/4",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/4"
     },
     {
       "id": "com.example.dusk-studio",
@@ -170,8 +170,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/5",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/5"
     },
     {
       "id": "com.example.github-notifications",
@@ -241,8 +241,8 @@
         }
       ],
       "downloads": 2,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/6",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/6"
     },
     {
       "id": "com.example.midnight-glass",
@@ -296,8 +296,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/7",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/7"
     },
     {
       "id": "com.example.mono-glyphs",
@@ -353,8 +353,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/8",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/8"
     },
     {
       "id": "com.example.paper-studio",
@@ -408,8 +408,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/9",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/9"
     },
     {
       "id": "com.example.pomodoro",
@@ -479,9 +479,9 @@
           }
         }
       ],
-      "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/10",
-      "likes": 0
+      "downloads": 3,
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/10"
     },
     {
       "id": "com.example.random-palette",
@@ -537,8 +537,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/11",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/11"
     },
     {
       "id": "com.example.soft-chimes",
@@ -594,8 +594,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/12",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/12"
     },
     {
       "id": "com.example.soft-effects",
@@ -651,8 +651,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/13",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/13"
     },
     {
       "id": "com.example.studio-grids",
@@ -708,8 +708,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/14",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/14"
     },
     {
       "id": "com.example.sunset-neon",
@@ -763,8 +763,8 @@
         }
       ],
       "downloads": 1,
-      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/15",
-      "likes": 0
+      "likes": 0,
+      "discussion": "https://github.com/kaizensx/atelier-mods/discussions/15"
     }
   ]
 }
